@@ -7,21 +7,21 @@ EightDigits-iOS-SDK-x.y.zip dosyası açılır. İçerisinden çıkan EightDigit
 
 Kopyalama işlemi yapıldıktan sonra projeniz aşağıdaki gibi görünecektir. 
 
-![Project Tree](DocumentImages/figure2.png)
+![Project Tree](8Digits-iOS-SDK/raw/master/figures/figure2.png)
 
 EightDigits iOS SDK server ile iletişim için ASI Http kütüphanesini kullanmaktadır. Ayrıca serverside APIden dönen JSON içeriği parse edebilmek için de SBJSON kütüphanesini kullanmaktadır. Bu kütüphanelerin çalışabilmesi için bazı library'lerin link edilmesi gereklidir. 
 
 Bu işlemi yapabilmek için sol taraftaki proje ağacında projenizin ismine tıklayıp, **Targets**'da projenize tıklayıp, **Build Phases** sekmesi altında **Link Binary With Libraries** içerisine aşağıdaki kütüphaneleri ekliyoruz. 
 
-![Kütüphaneler](DocumentImages/figure3.png)
+![Kütüphaneler](8Digits-iOS-SDK/raw/master/figures/figure3.png)
 
 Ardından projenizi hemen build etmeye çalıştığınızda aşağıdaki ekrandaki gibi bir hata ile karşılaşabilirsiniz. 
 
-![XML Build Hata Ekranı](DocumentImages/figure4.png)
+![XML Build Hata Ekranı](8Digits-iOS-SDK/raw/master/figures/figure4.png)
 
 Bu hata mesajını aşmak için **Build Settings** altında **Search Paths** içerisinde **User Header Search Paths** içerisine aşağıdaki iki satırı eklemek gereklidir. 
 
-![Header Fix](DocumentImages/figure5.png)
+![Header Fix](8Digits-iOS-SDK/raw/master/figures/figure5.png)
 
 Yukarıdaki işlemleri yaptıktan sonra build işlemini yaptığınızda projeniz sorunsuz bir şekilde derlenecektir. Kurulum tamamlanmıştır. 
 
