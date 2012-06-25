@@ -3,7 +3,7 @@
 ## Kurulum
 EightDigits-iOS-SDK-x.y.zip dosyası açılır. İçerisinden çıkan EightDigits dizini SDK'nın kendisidir. 8digits entegrasyonu yapmak istediğiniz projeyi Xcode'da açıp, *EightDigits* ve *Utility* klasörlerini projenize sürükleyip bırakmanız gereklidir. Bu esnada karşınıza çıkacak olan diyalog kutusunda *"Copy items into destination groupʼs folder (if needed)"* seçeneğinin seçili olduğundan emin olunuz. 
 
-![Copying EightDigits](DocumentImages/figure1.png)
+![Copying EightDigits](8Digits-iOS-SDK/raw/master/figures/figure1.png)
 
 Kopyalama işlemi yapıldıktan sonra projeniz aşağıdaki gibi görünecektir. 
 
