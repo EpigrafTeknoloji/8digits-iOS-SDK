@@ -35,9 +35,10 @@ Her hit, yani ekran için `title` ve `path` parametrelerine ihtiyaç vardır. Bu
 
 ###Event 
 
-Bir ekrandaki herhangi bir düğmeye basma, touch gesture veya butona basma işlemi 8digits’e gönderilebilir. Bu sayede o ekranda olan biten herhangi bir işlemi track etme imkanınız olabilmektedir. Bu işlem için eventler kullanılmaktadır.
+Bir ekrandaki herhangi bir düğmeye basma, touch gesture veya butona basma işlemi 8digits’e gönderilebilir. Bu sayede o ekranda olan biten herhangi bir işlemi track etme imkanınız olabilmektedir. Bu işlem için eventler kullanılmaktadır.
 
-Yeni bir event gönderebilmek için bir adet key ve bir adet value’ya ihtiyacınız vardır. Bu key değerlerini unique tutarsanız yapılan işlemler birbiri ile karışmayacaktır.Örneğin bir düğmeye basıldığında ve ürün incelenmeye alındığında key olarak `ProductWatch` value olarak da ürünün sizin taraftaki product id sini `L5308073` gönderebilirsiniz. Bu sayede hangi ürünün kaçar defa incelendiğini saatlik, günlük ve overall görebilme imkanınız olacaktır.
+Yeni bir event gönderebilmek için bir adet key ve bir adet value’ya ihtiyacınız vardır. Bu key değerlerini unique tutarsanız yapılan işlemler birbiri ile karışmayacaktır.
+Örneğin bir düğmeye basıldığında ve ürün incelenmeye alındığında key olarak `ProductWatch` value olarak da ürünün sizin taraftaki product id sini `L5308073` gönderebilirsiniz. Bu sayede hangi ürünün kaçar defa incelendiğini saatlik, günlük ve overall görebilme imkanınız olacaktır.
 
 Uygulamalarda bir event kuşkusuz ki bir ekranda gerçekleşecektir. Eğer ekran için daha önceden bir hit oluşturulduysa gönderilen event bu [hit](#hit) ile ilişkilendirilebilir. Hiçbir hit ile ilişkilendirilmemiş eventler de tercih edilebilir.
 
@@ -102,14 +103,16 @@ Uygulama açıldığı anda bir visit başlatmalı ve uygulama kapandığında b
 Bu işlemi tercihen `AppDelegate` sınıfınızın, uygulama açıldığında çağırılan `application:didFinishLaunchingWithOptions:` metodunun içerisine şu kodu ekleyerek yapabilirsiniz:
 
 ```
-[[EDVisit currentVisit] startWithUsername:@"your-username"								 password:@"your-password"
-							 trackingCode:@"your-tracking-code"								urlPrefix:@"your-url-prefix"];
+[[EDVisit currentVisit] startWithUsername:@"your-username"
+								 password:@"your-password"
+							 trackingCode:@"your-tracking-code"
+								urlPrefix:@"your-url-prefix"];
 ```
 
 Eğer `EightDigits.plist` dosyasına `EDTrackingCode` keyine karşılık tracking code değerinizi ve `EDURLPrefix`keyine karşılık api URL prefix değerinizi girdiyseniz bu visit başlatma işlemini şu kod satırıyla da yapabilirsiniz.
 
 ```
-[[EDVisit currentVisit] startWithUsername:@"your-username"								 password:@"your-password"];
+[[EDVisit currentVisit] startWithUsername:@"your-username" password:@"your-password"];
 ```
 
 **Not:** Güvenlik sebeplerinden dolayı (bundle içerisindeki .plist dosyalarına doğrudan erişilebildiğinden) `username` ve `password` değerlerinizin bir .plist dosyasında saklanması **kesinlikle tavsiye edilmez.** 
@@ -173,9 +176,7 @@ Gönderdiğiniz eventler bir hit ile ilişkili olabildiği gibi, herhangi bir hi
 Eğer kendi oluşturduğunuz bir hit üzerinden event göndermek isterseniz şu şekilde yapabilirsiniz:
 
 ```
-EDEvent *event = [[EDEvent alloc] initWithValue:@"value2" 
-										 forKey:@"key"
-											hit:self.hit];
+EDEvent *event = [[EDEvent alloc] initWithValue:@"value2" forKey:@"key" hit:self.hit];
 [event trigger];
 ```
 
@@ -201,8 +202,7 @@ Uygulamanızın o anki kullanıcısının badge bilgilerine `EDVisitor` nesnesin
 self.badges = [[EDVisitor currentVisitor] badges];
 	
 if (self.badges == nil) {
-	[[EDVisitor currentVisitor] 
-	 loadBadgesWithCompletionHandler:^(NSArray *badges, NSError *error) {
+	[[EDVisitor currentVisitor] loadBadgesWithCompletionHandler:^(NSArray *badges, NSError *error) {
 		if (error != nil) {
 			// Badges did not load. Do something with the error.
 		}
@@ -224,8 +224,7 @@ Uygulamanızın o anki kullanıcısının skor bilgilerine `EDVisitor` nesnesini
 self.visitorScore = [[EDVisitor currentVisitor] score];
 
 if (visitorScore == EDVisitorScoreNotLoaded) {
-	[[EDVisitor currentVisitor] 
-	 loadScoreWithCompletionHandler:^(NSInteger score, NSString *error) {
+	[[EDVisitor currentVisitor] loadScoreWithCompletionHandler:^(NSInteger score, NSString *error) {
 		
 		 if (error != nil) {
 			 // Score failed to load. Do something with the error.
@@ -241,23 +240,15 @@ if (visitorScore == EDVisitorScoreNotLoaded) {
 8digits API bunun yanında, uygulamanızın o anki kullanıcısının skorunu yükseltmenize ya da düşürmenize de olanak sağlar:
 
 ```
-[[EDVisitor currentVisitor] increaseScoreBy:42 
-					  withCompletionHandler:^(NSInteger newScore, 
-											  NSString *error) {
-						  
-						  self.score = newScore; 
-						  
-					  }];
+[[EDVisitor currentVisitor] increaseScoreBy:42 withCompletionHandler:^(NSInteger newScore, NSString *error) {					  
+	self.score = newScore; 
+}];
 ```
 
 ```
-[[EDVisitor currentVisitor] decreaseScoreBy:42 
-					  withCompletionHandler:^(NSInteger newScore, 
-											  NSString *error) {
-						  
-						  self.score = newScore; 
-						  
-					  }];
+[[EDVisitor currentVisitor] decreaseScoreBy:42 withCompletionHandler:^(NSInteger newScore, NSString *error) {						  
+	self.score = newScore; 
+}];
 ```
 
 `EDVisitor` nesnesinin `loadScoreWithCompletionHandler:`, `increaseScoreBy:withCompletionHandler:` ya da `decreaseScoreBy:withCompletionHandler:` metotlarından biri çağırıldığında `score` değişkeni de güncellenir. Bu evreden sonra kullanıcı skoruna `[[EDVisitor currentVisitor] score]` şeklinde ulaşabilirsiniz.
