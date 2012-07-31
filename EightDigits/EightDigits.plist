@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>EDHits</key>
+	<array>
+		<dict>
+			<key>EDClassName</key>
+			<string>EDTDetailViewController</string>
+			<key>EDAutomaticMonitoring</key>
+			<false/>
+			<key>EDTitle</key>
+			<string>Detail</string>
+			<key>EDPath</key>
+			<string>/detail</string>
+		</dict>
+		<dict>
+			<key>EDClassName</key>
+			<string>EDTMasterViewController</string>
+			<key>EDAutomaticMonitoring</key>
+			<true/>
+			<key>EDTitle</key>
+			<string>List</string>
+			<key>EDPath</key>
+			<string>/list</string>
+		</dict>
+		<dict>
+			<key>EDClassName</key>
+			<string>EDTVisitorViewController</string>
+			<key>EDAutomaticMonitoring</key>
+			<true/>
+			<key>EDTitle</key>
+			<string>Visitor</string>
+			<key>EDPath</key>
+			<string>/visitor-info</string>
+		</dict>
+	</array>
+	<key>EDTrackingCode</key>
+	<string>your-tracking-code</string>
+	<key>EDURLPrefix</key>
+	<string>your-url-prefix</string>
+</dict>
+</plist>
