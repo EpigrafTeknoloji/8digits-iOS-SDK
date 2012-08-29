@@ -424,10 +424,10 @@ static EDVisit	*_currentVisit = nil;
 	
 	NSString *URLString = [NSString stringWithFormat:@"%@/visit/end", self.urlPrefix];
 	self.visitRequest = [[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:URLString]];
-	[self.visitRequest setValue:self.authToken forKey:@"authToken"];
-	[self.visitRequest setValue:self.trackingCode forKey:@"trackingCode"];
-	[self.visitRequest setValue:self.sessionCode forKey:@"sessionCode"];
-	[self.visitRequest setValue:self.visitorCode forKey:@"visitorCode"];
+	[self.visitRequest setPostValue:self.authToken forKey:@"authToken"];
+	[self.visitRequest setPostValue:self.trackingCode forKey:@"trackingCode"];
+	[self.visitRequest setPostValue:self.sessionCode forKey:@"sessionCode"];
+	[self.visitRequest setPostValue:self.visitorCode forKey:@"visitorCode"];
 	
 	[self.visitRequest startAsynchronous];
 	
