@@ -119,6 +119,10 @@
 
 - (void)start {
 	
+	if (self.visit.logging) {
+		NSLog(@"8digits: Hit %@ (%@) will start", self.path, self.hitCode);
+	}
+	
 	[self setRegistered:NO];
 	[self setStartDate:[NSDate date]];
 	[self requestStart];
@@ -128,6 +132,10 @@
 }
 
 - (void)end {
+	
+	if (self.visit.logging) {
+		NSLog(@"8digtis: Hit %@ (%@) will end", self.path, self.hitCode);
+	}
 	
 	[self setEndDate:[NSDate date]];
 	
@@ -155,6 +163,11 @@
 	__unsafe_unretained EDHit *selfHit = self;
 	
 	[self.startRequest setCompletionBlock:^(void) {
+		
+		if (self.visit.logging) {
+			NSLog(@"8digits: Hit %@ (%@) did start", self.path, self.hitCode);
+		}
+
 		NSDictionary *dict = [self.startRequest.responseString objectFromJSONString];
 		self.hitCode = [[dict objectForKey:@"data"] objectForKey:@"hitCode"];
 		
@@ -166,6 +179,9 @@
 	}];
 	
 	[self.startRequest setFailedBlock:^(void){
+		if (self.visit.logging) {
+			NSLog(@"8digits: Hit %@ (%@) did fail to start: %@", self.path, self.hitCode, self.startRequest.error.localizedDescription);
+		}
 	}];
 	
 	[self.startRequest setQueuePriority:self.events.count > 0 ? NSOperationQueuePriorityVeryHigh : NSOperationQueuePriorityHigh];
@@ -187,10 +203,16 @@
 	__unsafe_unretained EDHit *selfHit = self;
 	
 	[self.endRequest setCompletionBlock:^(void){
+		if (self.visit.logging) {
+			NSLog(@"8digits: Hit %@ (%@) will did end", self.path, self.hitCode);
+		}
 		[self.visit hitDidEnd:selfHit];
 	}];
 	
 	[self.endRequest setFailedBlock:^(void) {
+		if (self.visit.logging) {
+			NSLog(@"8digits: Hit %@ (%@) did fail to end: %@", self.path, self.hitCode, self.endRequest.error.localizedDescription);
+		}
 	}];
 	
 	[self.visit addRequest:self.endRequest];

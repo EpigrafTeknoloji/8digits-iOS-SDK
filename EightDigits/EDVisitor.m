@@ -90,12 +90,18 @@ static EDVisitor *_currentVisitor = nil;
 			if (completionHandler) {
 				completionHandler(nil, error);
 			}
+			if (self.visit.logging) {
+				NSLog(@"8digits: Failed to load badges for %@, reason: %@", self.visitorCode, error);
+			}
 		}
 		
 		else {
 			self.badges = [[dict objectForKey:@"data"] objectForKey:@"badges"];
 			if (completionHandler) {
 				completionHandler(self.badges, nil);
+			}
+			if (self.visit.logging) {
+				NSLog(@"8digits: Loaded %i badges for %@", self.badges.count, self.visitorCode);
 			}
 		}
 		
@@ -106,6 +112,9 @@ static EDVisitor *_currentVisitor = nil;
 		self.badges = nil;
 		if (completionHandler) {
 			completionHandler(nil, error);
+		}
+		if (self.visit.logging) {
+			NSLog(@"8digits: Failed to load badges for %@, reason: %@", self.visitorCode, error);
 		}
 	}];
 	
@@ -134,6 +143,9 @@ static EDVisitor *_currentVisitor = nil;
 			if (completionHandler) {
 				completionHandler(self.score, error);
 			}
+			if (self.visit.logging) {
+				NSLog(@"8digits: Failed to load score for %@, reason: %@", self.visitorCode, error);
+			}
 		}
 		
 		else {
@@ -141,6 +153,10 @@ static EDVisitor *_currentVisitor = nil;
 			
 			if (completionHandler) {
 				completionHandler(self.score, nil);
+			}
+			
+			if (self.visit.logging) {
+				NSLog(@"8digits: Loaded score (%i) for %@", self.score, self.visitorCode);
 			}
 			
 		}
@@ -152,6 +168,9 @@ static EDVisitor *_currentVisitor = nil;
 		self.score = EDVisitorScoreNotLoaded;
 		if (completionHandler) {
 			completionHandler(self.score, error);
+		}
+		if (self.visit.logging) {
+			NSLog(@"8digits: Failed to load score for %@, reason: %@", self.visitorCode, error);
 		}
 	}];
 	
@@ -181,12 +200,18 @@ static EDVisitor *_currentVisitor = nil;
 			if (completionHandler) {
 				completionHandler(self.score, error);
 			}
+			if (self.visit.logging) {
+				NSLog(@"8digits: Failed to increase score for %@, reason: %@", self.visitorCode, error);
+			}
 		}
 		
 		else {
 			self.score = [[[dict objectForKey:@"data"] objectForKey:@"score"] integerValue];
 			if (completionHandler) {
 				completionHandler(self.score, nil);
+			}
+			if (self.visit.logging) {
+				NSLog(@"8digits: Increased score (%i, %i) for %@", differential, self.score, self.visitorCode);
 			}
 		}
 		
@@ -197,6 +222,9 @@ static EDVisitor *_currentVisitor = nil;
 		self.score = EDVisitorScoreNotLoaded;
 		if (completionHandler) {
 			completionHandler(self.score, error);
+		}
+		if (self.visit.logging) {
+			NSLog(@"8digits: Failed to increase score for %@, reason: %@", self.visitorCode, error);
 		}
 	}];
 	
@@ -226,12 +254,18 @@ static EDVisitor *_currentVisitor = nil;
 			if (completionHandler) {
 				completionHandler(self.score, error);
 			}
+			if (self.visit.logging) {
+				NSLog(@"8digits: Failed to decrease score for %@, reason: %@", self.visitorCode, error);
+			}
 		}
 		
 		else {
 			self.score = [[[dict objectForKey:@"data"] objectForKey:@"score"] integerValue];
 			if (completionHandler) {
 				completionHandler(self.score, nil);
+			}
+			if (self.visit.logging) {
+				NSLog(@"8digits: Decreased score (%i, %i) for %@", differential, self.score, self.visitorCode);
 			}
 		}
 		
@@ -242,6 +276,9 @@ static EDVisitor *_currentVisitor = nil;
 		self.score = EDVisitorScoreNotLoaded;
 		if (completionHandler) {
 			completionHandler(self.score, error);
+		}
+		if (self.visit.logging) {
+			NSLog(@"8digits: Failed to decrease score for %@, reason: %@", self.visitorCode, error);
 		}
 	}];
 	

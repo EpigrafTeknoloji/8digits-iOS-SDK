@@ -126,4 +126,25 @@ static NSString *EDVisitDidChangeAuthorisationStatusNotification = @"EDVisitDidC
 - (void)triggerEventWithValue:(NSString *)value forKey:(NSString *)key;
 
 
+/**
+	Logging status of the visit
+	YES if the registration success/failures gets logged, NO if not. Read-only property; set with startLogging and stopLogging.
+	@default NO
+	@see startLogging
+	@see stopLogging
+ */
+@property (nonatomic, readonly, getter = isLogging)	BOOL	 logging;
+
+/**
+	Starts logging all activities
+	@see stopLogging
+ */
+- (void)startLogging;
+
+/**
+	Stops logging all activities
+	@see startLogging
+ */
+- (void)stopLogging;
+
 @end

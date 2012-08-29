@@ -117,6 +117,8 @@ Eğer `EightDigits.plist` dosyasına `EDTrackingCode` keyine karşılık trackin
 
 **Not:** Güvenlik sebeplerinden dolayı (bundle içerisindeki .plist dosyalarına doğrudan erişilebildiğinden) `username` ve `password` değerlerinizin bir .plist dosyasında saklanması **kesinlikle tavsiye edilmez.** 
 
+**Not:** 8digits API'nin yaptığı başarılı/başarısız işlemleri loglarda görmek isterseniz, visit oluşturduktan hemen sonra `[[EDVisit currentVisit] startLogging]` metodunu çağırın. Uygulamanın herhangi bir yerinde loglamayı sonlandırmak için `[[EDVisit currentVisit] stopLogging]` metodunu kullanabilirsiniz.
+
 Uygulama genelinde kullanacağınız `EDVisit` nesnesine `[EDVisit currentVisit]` ile ulaşabilirsiniz. Bu visit nesnesini `[[EDVisit alloc] init]` şeklinde oluşturmanıza gerek yoktur. 8digits API bu işlemi kendisi yapar.
 
 Başlatmış olduğunuz bu visiti yine `AppDelegate` nesnesinin uygulama kapandığında çağırılan metoduna şu kodu ekleyerek sonlandırabilirsiniz.
