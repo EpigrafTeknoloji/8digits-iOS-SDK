@@ -16,6 +16,8 @@
 #import "JSONKit.h"
 #import "ASIFormDataRequest.h"
 
+#import "ED_ARC.h"
+
 @interface EDEvent ()
 
 @property (nonatomic, assign, readonly)	EDVisit	*visit;
@@ -30,6 +32,20 @@
 @synthesize key			= _key;
 
 @synthesize timestamp	= _timestamp;
+
+#if !__has_feature(objc_arc)
+- (void)dealloc {
+	
+	[_value release];
+	[_key release];
+	[_timestamp release];
+	
+	[super dealloc];
+	
+}
+#endif
+
+#pragma mark - Custom accessor
 
 - (NSString *)hitCode {
 	return self.hit.hitCode;
@@ -137,6 +153,7 @@
 	}];
 	
 	[self.visit addRequest:request];
+	ED_ARC_RELEASE(request);
 	
 }
 
@@ -145,8 +162,8 @@
 @implementation UIViewController (EDEventAdditions)
 
 - (void)triggerEventWithValue:(NSString *)value forKey:(NSString *)key {
-	EDEvent *event = [[EDEvent alloc] initWithValue:value forKey:key hit:self.hit];
-	[event trigger];	
+	EDEvent *event = ED_ARC_AUTORELEASE([[EDEvent alloc] initWithValue:value forKey:key hit:self.hit]);
+	[event trigger];
 }
 
 @end

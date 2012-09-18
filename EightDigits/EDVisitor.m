@@ -15,6 +15,8 @@
 #import "ASINetworkQueue.h"
 #import "JSONKit.h"
 
+#import "ED_ARC.h"
+
 @interface EDVisitor ()
 
 @property (nonatomic, strong)				ASINetworkQueue	*queue;
@@ -37,6 +39,17 @@ static EDVisitor *_currentVisitor = nil;
 
 @synthesize visit			= _visit;
 
+#if !__has_feature(objc_arc)
+- (void)dealloc {
+	
+	[_queue release];
+	[_badges release];
+	
+	[super dealloc];
+	
+}
+#endif
+
 #pragma mark - Init
 
 + (EDVisitor *)currentVisitor {
@@ -44,7 +57,7 @@ static EDVisitor *_currentVisitor = nil;
 }
 
 + (void)setCurrentVisitor:(EDVisitor *)visitor {
-	_currentVisitor = visitor;
+	_currentVisitor = ED_ARC_RETAIN(visitor);
 }
 
 - (id)init {
@@ -52,11 +65,11 @@ static EDVisitor *_currentVisitor = nil;
 	self = [super init];
 	
 	if (self) {
-		self.queue = [[ASINetworkQueue alloc] init];
-		[self.queue setMaxConcurrentOperationCount:1];
-		[self.queue setShouldCancelAllRequestsOnFailure:NO];
+		_queue = [[ASINetworkQueue alloc] init];
+		[_queue setMaxConcurrentOperationCount:1];
+		[_queue setShouldCancelAllRequestsOnFailure:NO];
 		
-		self.score = EDVisitorScoreNotLoaded;
+		_score = EDVisitorScoreNotLoaded;
 	}
 	
 	return self;

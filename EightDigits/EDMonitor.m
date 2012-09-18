@@ -9,6 +9,8 @@
 #import "EDMonitor.h"
 #import "EDHit.h"
 
+#import "ED_ARC.h"
+
 #import <objc/runtime.h>
 
 @implementation EDClassInfo
@@ -19,6 +21,18 @@
 
 @synthesize class		= _class;
 @synthesize className	= _className;
+
+#if !__has_feature(objc_arc)
+- (void)dealloc {
+	
+	[_title release];
+	[_path release];
+	[_className release];
+	
+	[super dealloc];
+	
+}
+#endif
 
 - (id)initWithDictionary:(NSDictionary *)dictionary {
 	
@@ -103,19 +117,25 @@ static id newDisappear(id self, SEL _cmd, BOOL animated) {
 		NSArray *array = [dict objectForKey:@"EDHits"];
 		NSMutableDictionary *monitoredClasses = [[NSMutableDictionary alloc] init];
 		
-		for (NSDictionary *dict in array) {
+		for (NSDictionary *monitorDict in array) {
 			
-			EDClassInfo *info = [[EDClassInfo alloc] initWithDictionary:dict];
+			EDClassInfo *info = [[EDClassInfo alloc] initWithDictionary:monitorDict];
 			
 			if (info.className == nil) {
+				ED_ARC_RELEASE(info);
 				continue;
 			}
 			
 			[monitoredClasses setObject:info forKey:info.className];
 			
+			ED_ARC_RELEASE(info);
+			
 		}
 		
 		self.monitoredClasses = monitoredClasses;
+		
+		ED_ARC_RELEASE(monitoredClasses);
+		ED_ARC_RELEASE(dict);
 		
 	}
 	

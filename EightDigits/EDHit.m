@@ -19,6 +19,8 @@
 #import "ASIFormDataRequest.h"
 #import "JSONKit.h"
 
+#import "ED_ARC.h"
+
 @interface EDHit ()
 
 @property (nonatomic, strong, readwrite)			NSString			*hitCode;
@@ -33,6 +35,8 @@
 
 @property (nonatomic, strong)						ASIFormDataRequest	*startRequest;
 @property (nonatomic, strong)						ASIFormDataRequest	*endRequest;
+
+@property (nonatomic, strong)						NSString			*leak;
 
 - (void)requestStart;
 - (void)requestEnd;
@@ -59,6 +63,27 @@
 @synthesize startRequest			= _startRequest;
 @synthesize endRequest				= _endRequest;
 
+#if !__has_feature(objc_arc)
+- (void)dealloc {
+	
+	[_hitCode release];
+	
+	[_title release];
+	[_path release];
+	
+	[_eventArray release];
+
+	[_startDate release];
+	[_endDate release];
+	
+	[_startRequest release];
+	[_endRequest release];
+	
+	[super dealloc];
+	
+}
+#endif
+
 #pragma mark - Initializer
 
 - (id)initWithController:(UIViewController *)controller {
@@ -67,6 +92,7 @@
 	
 	if (self) {
 		[self setTitle:controller.title path:NSStringFromClass(controller.class)];
+		self.leak = @"Leaky";
 	}
 	
 	return self;
@@ -78,7 +104,7 @@
 	self = [super init];
 	
 	if (self) {
-		self.eventArray = [[NSMutableArray alloc] init];
+		_eventArray = [[NSMutableArray alloc] init];
 	}
 	
 	return self;
@@ -90,8 +116,9 @@
 - (NSString *)hitCode {
 	
 	if (_hitCode == nil) {
-		NSInteger hitCode = arc4random() % NSIntegerMax;
-		_hitCode = [NSString stringWithFormat:@"%i", hitCode];
+		NSInteger hitCodeValue = arc4random() % NSIntegerMax;
+		NSString *hitCode = [NSString stringWithFormat:@"%i", hitCodeValue];
+		_hitCode = ED_ARC_RETAIN(hitCode);
 	}
 	
 	return _hitCode;
@@ -151,18 +178,21 @@
 - (void)requestStart {
 	
 	NSString *URLString = [NSString stringWithFormat:@"%@/hit/create", self.visit.urlPrefix];
-	self.startRequest = [[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:URLString]];
-	[self.startRequest setPostValue:self.visit.authToken forKey:@"authToken"];
-	[self.startRequest setPostValue:self.visit.trackingCode forKey:@"trackingCode"];
-	[self.startRequest setPostValue:self.visit.visitorCode forKey:@"visitorCode"];
-	[self.startRequest setPostValue:self.visit.sessionCode forKey:@"sessionCode"];
-	[self.startRequest setPostValue:self.title forKey:@"pageTitle"];
-	[self.startRequest setPostValue:self.path forKey:@"path"];
-	[self.startRequest setPostValue:self.hitCode forKey:@"hitCode"];
+	
+	ED_ARC_RELEASE(_startRequest);
+	
+	_startRequest = [[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:URLString]];
+	[_startRequest setPostValue:self.visit.authToken forKey:@"authToken"];
+	[_startRequest setPostValue:self.visit.trackingCode forKey:@"trackingCode"];
+	[_startRequest setPostValue:self.visit.visitorCode forKey:@"visitorCode"];
+	[_startRequest setPostValue:self.visit.sessionCode forKey:@"sessionCode"];
+	[_startRequest setPostValue:self.title forKey:@"pageTitle"];
+	[_startRequest setPostValue:self.path forKey:@"path"];
+	[_startRequest setPostValue:self.hitCode forKey:@"hitCode"];
 	
 	__unsafe_unretained EDHit *selfHit = self;
 	
-	[self.startRequest setCompletionBlock:^(void) {
+	[_startRequest setCompletionBlock:^(void) {
 		
 		if (self.visit.logging) {
 			NSLog(@"8digits: Hit %@ (%@) did start", self.path, self.hitCode);
@@ -178,14 +208,13 @@
 		
 	}];
 	
-	[self.startRequest setFailedBlock:^(void){
+	[_startRequest setFailedBlock:^(void){
 		if (self.visit.logging) {
 			NSLog(@"8digits: Hit %@ (%@) did fail to start: %@", self.path, self.hitCode, self.startRequest.error.localizedDescription);
 		}
 	}];
 	
-	[self.startRequest setQueuePriority:self.events.count > 0 ? NSOperationQueuePriorityVeryHigh : NSOperationQueuePriorityHigh];
-	
+	[_startRequest setQueuePriority:self.events.count > 0 ? NSOperationQueuePriorityVeryHigh : NSOperationQueuePriorityHigh];
 	[self.visit addRequest:self.startRequest];
 	
 }
@@ -193,23 +222,26 @@
 - (void)requestEnd {
 	
 	NSString *URLString = [NSString stringWithFormat:@"%@/hit/end", self.visit.urlPrefix];
-	self.endRequest = [[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:URLString]];
-	[self.endRequest setPostValue:self.visit.authToken forKey:@"authToken"];
-	[self.endRequest setPostValue:self.visit.trackingCode forKey:@"trackingCode"];
-	[self.endRequest setPostValue:self.visit.visitorCode forKey:@"visitorCode"];
-	[self.endRequest setPostValue:self.visit.sessionCode forKey:@"sessionCode"];
-	[self.endRequest setPostValue:self.hitCode forKey:@"hitCode"];
+	
+	ED_ARC_RELEASE(_endRequest);
+	
+	_endRequest = [[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:URLString]];
+	[_endRequest setPostValue:self.visit.authToken forKey:@"authToken"];
+	[_endRequest setPostValue:self.visit.trackingCode forKey:@"trackingCode"];
+	[_endRequest setPostValue:self.visit.visitorCode forKey:@"visitorCode"];
+	[_endRequest setPostValue:self.visit.sessionCode forKey:@"sessionCode"];
+	[_endRequest setPostValue:self.hitCode forKey:@"hitCode"];
 	
 	__unsafe_unretained EDHit *selfHit = self;
 	
-	[self.endRequest setCompletionBlock:^(void){
+	[_endRequest setCompletionBlock:^(void){
 		if (self.visit.logging) {
-			NSLog(@"8digits: Hit %@ (%@) will did end", self.path, self.hitCode);
+			NSLog(@"8digits: Hit %@ (%@) did end", self.path, self.hitCode);
 		}
 		[self.visit hitDidEnd:selfHit];
 	}];
 	
-	[self.endRequest setFailedBlock:^(void) {
+	[_endRequest setFailedBlock:^(void) {
 		if (self.visit.logging) {
 			NSLog(@"8digits: Hit %@ (%@) did fail to end: %@", self.path, self.hitCode, self.endRequest.error.localizedDescription);
 		}
@@ -299,7 +331,8 @@
 	EDHit *hit = objc_getAssociatedObject(self, @"ED_hit");
 	
 	if (hit == nil || hit.endDate) {
-		hit = [[EDHit alloc] initWithController:self];
+		ED_ARC_RELEASE(hit);
+		hit = ED_ARC_AUTORELEASE([[EDHit alloc] initWithController:self]);
 		
 		EDClassInfo *info = [[EDMonitor defaultMonitor] classInfoForClass:[self class]];
 		if (info) {

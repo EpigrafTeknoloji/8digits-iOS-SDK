@@ -21,6 +21,8 @@
 #import "JSONKit.h"
 #import "Reachability.h"
 
+#import "ED_ARC.h"
+
 @interface EDVisit ()
 
 @property (nonatomic, readwrite)					BOOL				 logging;
@@ -93,6 +95,38 @@ static EDVisit	*_currentVisit = nil;
 @synthesize reachability			= _reachability;
 @synthesize suspended				= _suspended;
 
+#if !__has_feature(objc_arc)
+- (void)dealloc {
+	
+	[_urlPrefix release];
+	[_trackingCode release];
+	
+	[_authToken release];
+	[_visitorCode release];
+	[_sessionCode release];
+	
+	[_username release];
+	[_password release];
+	
+	[_hitArray release];
+	[_nonRegisteredHitArray release];
+	[_eventArray release];
+	
+	[_startDate release];
+	[_endDate release];
+	
+	[_authRequest release];
+	[_visitRequest release];
+	
+	[_networkQueue release];
+	
+	[_reachability release];
+	
+	[super dealloc];
+	
+}
+#endif
+
 + (EDVisit *)currentVisit {
 
 	if (_currentVisit == nil) {
@@ -120,29 +154,36 @@ static EDVisit	*_currentVisit = nil;
 		
 		NSDictionary *dict = [[NSDictionary alloc] initWithContentsOfFile:path];
 		
-		self.urlPrefix = [dict objectForKey:@"EDURLPrefix"];
+		_urlPrefix = ED_ARC_RETAIN([dict objectForKey:@"EDURLPrefix"]);
 		
-		if ([self.urlPrefix hasSuffix:@"/"]) {
-			self.urlPrefix = [self.urlPrefix substringToIndex:self.urlPrefix.length - 1];
+		if (![_urlPrefix hasPrefix:@"http://"]) {
+			NSString *newURLPrefix = [NSString stringWithFormat:@"http://%@", _urlPrefix];
+			_urlPrefix = ED_ARC_RETAIN(newURLPrefix);
 		}
 		
-		self.trackingCode = [dict objectForKey:@"EDTrackingCode"];
+		if ([self.urlPrefix hasSuffix:@"/"]) {
+			NSString *newURLPrefix = [self.urlPrefix substringToIndex:self.urlPrefix.length - 1];
+			_urlPrefix = ED_ARC_RETAIN(newURLPrefix);
+		}
 		
-		self.authorised = NO;
-		self.currentlyValid = YES;
+		_trackingCode = ED_ARC_RETAIN([dict objectForKey:@"EDTrackingCode"]);
+		ED_ARC_RELEASE(dict);
 		
-		self.networkQueue = [[ASINetworkQueue alloc] init];
-		[self.networkQueue setDelegate:self];
-		[self.networkQueue setMaxConcurrentOperationCount:3];
-		[self.networkQueue setShouldCancelAllRequestsOnFailure:NO];
-		[self.networkQueue setQueueDidFinishSelector:@selector(queueDidFinish:)];
+		_authorised = NO;
+		_currentlyValid = YES;
 		
-		self.hitArray = [[NSMutableArray alloc] init];
-		self.nonRegisteredHitArray = [[NSMutableArray alloc] init];
-		self.eventArray = [[NSMutableArray alloc] init];
+		_networkQueue = [[ASINetworkQueue alloc] init];
+		[_networkQueue setDelegate:self];
+		[_networkQueue setMaxConcurrentOperationCount:3];
+		[_networkQueue setShouldCancelAllRequestsOnFailure:NO];
+		[_networkQueue setQueueDidFinishSelector:@selector(queueDidFinish:)];
 		
-		self.reachability = [Reachability reachabilityForInternetConnection];
-		[self.reachability startNotifier];
+		_hitArray = [[NSMutableArray alloc] init];
+		_nonRegisteredHitArray = [[NSMutableArray alloc] init];
+		_eventArray = [[NSMutableArray alloc] init];
+		
+		_reachability = [Reachability reachabilityForInternetConnection];
+		[_reachability startNotifier];
 		
 		[[NSNotificationCenter defaultCenter] addObserverForName:kReachabilityChangedNotification object:self.reachability queue:nil usingBlock:^(NSNotification *notification) {
 			
@@ -194,14 +235,22 @@ static EDVisit	*_currentVisit = nil;
 
 		if (!_visitorCode) {
 			
-			CFStringRef uuid = CFUUIDCreateString(kCFAllocatorDefault, CFUUIDCreate(kCFAllocatorDefault));
-			_visitorCode = (__bridge_transfer NSString *)uuid;
+			CFUUIDRef uuid = CFUUIDCreate(kCFAllocatorDefault);
+
+			CFStringRef uuidString = CFUUIDCreateString(kCFAllocatorDefault, uuid);
+#if __has_feature(objc_arc)
+			_visitorCode = (__bridge_transfer NSString *)uuidString;
+#else
+			_visitorCode = (NSString *)uuidString;
+#endif
 			_visitorCode = [_visitorCode substringToIndex:8];
 			
 			NSLog(@"8digits: Created visitor code: %@", _visitorCode);
 			
 			[[NSUserDefaults standardUserDefaults] setObject:_visitorCode forKey:@"EDVisitorCode"];
 			[[NSUserDefaults standardUserDefaults] synchronize];
+			
+			CFRelease(uuid);
 			
 		}
 		
@@ -258,7 +307,7 @@ static EDVisit	*_currentVisit = nil;
 #pragma mark - Event
 
 - (void)triggerEventWithValue:(NSString *)value forKey:(NSString *)key {
-	EDEvent *event = [[EDEvent alloc] initWithValue:value forKey:key];
+	EDEvent *event = ED_ARC_AUTORELEASE([[EDEvent alloc] initWithValue:value forKey:key]);
 	[event trigger];
 }
 
@@ -347,9 +396,9 @@ static EDVisit	*_currentVisit = nil;
 	}
 	
 	NSString *URLString = [NSString stringWithFormat:@"%@/auth", self.urlPrefix]; 
-	self.authRequest = [[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:URLString]];
-	[self.authRequest setPostValue:self.username forKey:@"username"];
-	[self.authRequest setPostValue:self.password forKey:@"password"];
+	_authRequest = [[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:URLString]];
+	[_authRequest setPostValue:self.username forKey:@"username"];
+	[_authRequest setPostValue:self.password forKey:@"password"];
 	
 	__unsafe_unretained EDVisit *selfVisit = self;
 	
@@ -387,10 +436,10 @@ static EDVisit	*_currentVisit = nil;
 - (void)requestStart {
 	
 	NSString *URLString = [NSString stringWithFormat:@"%@/visit/create", self.urlPrefix];
-	self.visitRequest = [[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:URLString]];
-	[self.visitRequest setPostValue:self.authToken forKey:@"authToken"];
-	[self.visitRequest setPostValue:self.visitorCode forKey:@"visitorCode"];
-	[self.visitRequest setPostValue:self.trackingCode forKey:@"trackingCode"];
+	_visitRequest = [[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:URLString]];
+	[_visitRequest setPostValue:self.authToken forKey:@"authToken"];
+	[_visitRequest setPostValue:self.visitorCode forKey:@"visitorCode"];
+	[_visitRequest setPostValue:self.trackingCode forKey:@"trackingCode"];
 	
 	__unsafe_unretained EDVisit *selfVisit = self;
 	
@@ -423,13 +472,21 @@ static EDVisit	*_currentVisit = nil;
 - (void)requestEnd {
 	
 	NSString *URLString = [NSString stringWithFormat:@"%@/visit/end", self.urlPrefix];
+<<<<<<< HEAD
 	self.visitRequest = [[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:URLString]];
 	[self.visitRequest setPostValue:self.authToken forKey:@"authToken"];
 	[self.visitRequest setPostValue:self.trackingCode forKey:@"trackingCode"];
 	[self.visitRequest setPostValue:self.sessionCode forKey:@"sessionCode"];
 	[self.visitRequest setPostValue:self.visitorCode forKey:@"visitorCode"];
+=======
+	_visitRequest = [[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:URLString]];
+	[_visitRequest setPostValue:self.authToken forKey:@"authToken"];
+	[_visitRequest setPostValue:self.trackingCode forKey:@"trackingCode"];
+	[_visitRequest setPostValue:self.sessionCode forKey:@"sessionCode"];
+	[_visitRequest setPostValue:self.visitorCode forKey:@"visitorCode"];
+>>>>>>> Added support for ARC-disabled projects
 	
-	[self.visitRequest startAsynchronous];
+	[_visitRequest startAsynchronous];
 	
 }
 
@@ -452,6 +509,7 @@ static EDVisit	*_currentVisit = nil;
 	[currentVisitor setVisitorCode:self.visitorCode];
 	[currentVisitor setVisit:self];
 	[EDVisitor setCurrentVisitor:currentVisitor];
+	ED_ARC_RELEASE(currentVisitor);
 	
 	if (self.logging) {
 		NSLog(@"8digits: Visitor (%@) authorised", self.visitorCode);
