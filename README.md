@@ -117,6 +117,8 @@ Eğer `EightDigits.plist` dosyasına `EDTrackingCode` keyine karşılık trackin
 
 **Not:** Güvenlik sebeplerinden dolayı (bundle içerisindeki .plist dosyalarına doğrudan erişilebildiğinden) `username` ve `password` değerlerinizin bir .plist dosyasında saklanması **kesinlikle tavsiye edilmez.** 
 
+Eğer kullanıcı adı ve şifrenizi herhangi bir şekilde uygulamanızın içerisinde _hardcoded_ olarak tutmak istemiyorsanız, _authentication_ işlemini kendi serverlarınız üzerinde yapıp 8digits API'ye sadece size dönen _auth token_'ı vererek visit başlatabilirsiniz. Bunun için elinizdeki _auth token_'ı string halinde `[[EDVisit currentVisit] startWithAuthToken:]` metoduna göndermeniz yeterlidir.
+
 **Not:** 8digits API'nin yaptığı başarılı/başarısız işlemleri loglarda görmek isterseniz, visit oluşturduktan hemen sonra `[[EDVisit currentVisit] startLogging]` metodunu çağırın. Uygulamanın herhangi bir yerinde loglamayı sonlandırmak için `[[EDVisit currentVisit] stopLogging]` metodunu kullanabilirsiniz.
 
 Uygulama genelinde kullanacağınız `EDVisit` nesnesine `[EDVisit currentVisit]` ile ulaşabilirsiniz. Bu visit nesnesini `[[EDVisit alloc] init]` şeklinde oluşturmanıza gerek yoktur. 8digits API bu işlemi kendisi yapar.

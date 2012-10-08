@@ -452,6 +452,8 @@ static EDVisit	*_currentVisit = nil;
 	[_visitRequest setPostValue:self.authToken forKey:@"authToken"];
 	[_visitRequest setPostValue:self.visitorCode forKey:@"visitorCode"];
 	[_visitRequest setPostValue:self.trackingCode forKey:@"trackingCode"];
+	[_visitRequest setPostValue:@"Apple" forKey:@"vendor"];
+	[_visitRequest setPostValue:[[UIDevice currentDevice] model] forKey:@"brand"];
 	
 	__unsafe_unretained EDVisit *selfVisit = self;
 	
