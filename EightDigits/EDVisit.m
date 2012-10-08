@@ -433,6 +433,18 @@ static EDVisit	*_currentVisit = nil;
 	
 }
 
+- (void)startWithAuthToken:(NSString *)authToken {
+	
+	self.startDate = [NSDate date];
+	
+	self.authorising = NO;
+	self.authorised = YES;
+	self.authToken = authToken;
+	
+	[self requestStart];
+	
+}
+
 - (void)requestStart {
 	
 	NSString *URLString = [NSString stringWithFormat:@"%@/visit/create", self.urlPrefix];
@@ -472,19 +484,12 @@ static EDVisit	*_currentVisit = nil;
 - (void)requestEnd {
 	
 	NSString *URLString = [NSString stringWithFormat:@"%@/visit/end", self.urlPrefix];
-<<<<<<< HEAD
-	self.visitRequest = [[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:URLString]];
-	[self.visitRequest setPostValue:self.authToken forKey:@"authToken"];
-	[self.visitRequest setPostValue:self.trackingCode forKey:@"trackingCode"];
-	[self.visitRequest setPostValue:self.sessionCode forKey:@"sessionCode"];
-	[self.visitRequest setPostValue:self.visitorCode forKey:@"visitorCode"];
-=======
+
 	_visitRequest = [[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:URLString]];
 	[_visitRequest setPostValue:self.authToken forKey:@"authToken"];
 	[_visitRequest setPostValue:self.trackingCode forKey:@"trackingCode"];
 	[_visitRequest setPostValue:self.sessionCode forKey:@"sessionCode"];
 	[_visitRequest setPostValue:self.visitorCode forKey:@"visitorCode"];
->>>>>>> Added support for ARC-disabled projects
 	
 	[_visitRequest startAsynchronous];
 	

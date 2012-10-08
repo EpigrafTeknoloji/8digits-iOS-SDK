@@ -113,6 +113,13 @@ static NSString *EDVisitDidChangeAuthorisationStatusNotification = @"EDVisitDidC
 - (void)startWithUsername:(NSString *)username password:(NSString *)password trackingCode:(NSString *)trackingCode urlPrefix:(NSString *)urlPrefix;
 
 /**
+	Starts the visit directly with an already authorised token
+	Use this if you don't want your username and password hardcoded inside the app for security purposes
+	@param authToken auth token to be used for this visit
+ */
+- (void)startWithAuthToken:(NSString *)authToken;
+
+/**
 	Ends the visit
  */
 - (void)end;

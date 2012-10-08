@@ -36,8 +36,8 @@
 		</dict>
 	</array>
 	<key>EDTrackingCode</key>
-	<string>your-tracking-code</string>
+	<string>tracking-code</string>
 	<key>EDURLPrefix</key>
-	<string>your-url-prefix</string>
+	<string>url-prefix</string>
 </dict>
 </plist>
