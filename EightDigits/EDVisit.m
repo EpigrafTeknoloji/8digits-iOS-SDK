@@ -356,17 +356,10 @@ static EDVisit	*_currentVisit = nil;
 
 - (void)startWithUsername:(NSString *)username password:(NSString *)password trackingCode:(NSString *)trackingCode urlPrefix:(NSString *)urlPrefix {
 	
-	if (username && username.length) {
-		self.username = username;
-	}
-	
-	if (trackingCode && trackingCode.length) {
-		self.trackingCode = trackingCode;
-	}
-	
-	if (urlPrefix && urlPrefix.length) {
-		self.urlPrefix = urlPrefix;
-	}
+	self.username = username;
+    self.password = password;
+    self.trackingCode = trackingCode;
+    self.urlPrefix = urlPrefix;
 	
 	[self start];
 	
