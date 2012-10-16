@@ -245,7 +245,9 @@ static EDVisit	*_currentVisit = nil;
 #endif
 			_visitorCode = [_visitorCode substringToIndex:8];
 			
-			NSLog(@"8digits: Created visitor code: %@", _visitorCode);
+            if (self.logging) {
+                NSLog(@"8digits: Created visitor code: %@", _visitorCode);
+            }
 			
 			[[NSUserDefaults standardUserDefaults] setObject:_visitorCode forKey:@"EDVisitorCode"];
 			[[NSUserDefaults standardUserDefaults] synchronize];
