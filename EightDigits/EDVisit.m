@@ -161,8 +161,8 @@ static EDVisit	*_currentVisit = nil;
 			_urlPrefix = ED_ARC_RETAIN(newURLPrefix);
 		}
 		
-		if ([self.urlPrefix hasSuffix:@"/"]) {
-			NSString *newURLPrefix = [self.urlPrefix substringToIndex:self.urlPrefix.length - 1];
+		if ([_urlPrefix hasSuffix:@"/"]) {
+			NSString *newURLPrefix = [self.urlPrefix substringToIndex:_urlPrefix.length - 1];
 			_urlPrefix = ED_ARC_RETAIN(newURLPrefix);
 		}
 		
@@ -361,6 +361,17 @@ static EDVisit	*_currentVisit = nil;
 	self.username = username;
     self.password = password;
     self.trackingCode = trackingCode;
+    
+    if (![urlPrefix hasPrefix:@"http://"]) {
+        NSString *newURLPrefix = [NSString stringWithFormat:@"http://%@", urlPrefix];
+        urlPrefix = ED_ARC_RETAIN(newURLPrefix);
+    }
+    
+    if ([urlPrefix hasSuffix:@"/"]) {
+        NSString *newURLPrefix = [urlPrefix substringToIndex:urlPrefix.length - 1];
+        urlPrefix = ED_ARC_RETAIN(newURLPrefix);
+    }
+
     self.urlPrefix = urlPrefix;
 	
 	[self start];
@@ -449,6 +460,28 @@ static EDVisit	*_currentVisit = nil;
 	[_visitRequest setPostValue:self.trackingCode forKey:@"trackingCode"];
 	[_visitRequest setPostValue:@"Apple" forKey:@"vendor"];
 	[_visitRequest setPostValue:[[UIDevice currentDevice] model] forKey:@"brand"];
+    
+    CGRect screenRect = [[UIScreen mainScreen] bounds];
+    NSString *screenWidth = [NSString stringWithFormat:@"%.0f", screenRect.size.width];
+    NSString *screenHeight = [NSString stringWithFormat:@"%.0f", screenRect.size.height];
+    NSString *acceptedLang = [[NSLocale preferredLanguages] objectAtIndex:0];
+    
+    NSLog(@"Tse tse tse %@, %@", screenWidth, screenHeight);
+    
+    UIDevice *device = [UIDevice currentDevice];
+    NSString *systemVersion = [device systemVersion];
+    NSString *systemName = [device systemName];
+    NSString *model = [device model];
+    
+    NSString *userAgent = [NSString stringWithFormat:@"Mozilla/5.0 (%@; U; CPU %@ %@ like Mac OS X; en-us) AppleWebKit (KHTML, like Gecko) Mobile/8A293 Safari", model, systemName, systemVersion];
+    
+    [_visitRequest setPostValue:userAgent forKey:@"userAgent"];
+    [_visitRequest setPostValue:screenWidth forKey:@"screenWidth"];
+    [_visitRequest setPostValue:screenHeight forKey:@"screenHeight"];
+    [_visitRequest setPostValue:@"24" forKey:@"color"];
+    [_visitRequest setPostValue:acceptedLang forKey:@"acceptLang"];
+    [_visitRequest setPostValue:@"0.0.0" forKey:@"flashVersion"];
+    [_visitRequest setPostValue:@"false" forKey:@"javaEnabled"];
 	
 	__unsafe_unretained EDVisit *selfVisit = self;
 	
@@ -495,6 +528,10 @@ static EDVisit	*_currentVisit = nil;
 - (void)failWithError:(NSString *)error {
 	[self setAuthorised:NO];
 //	[self performSelector:@selector(authorise) withObject:nil afterDelay:5];
+    
+    if (self.logging) {
+        NSLog(@"8digits: Authorization failed (%@)", error);
+    }
 	
 	[[NSNotificationCenter defaultCenter] postNotificationName:EDVisitDidChangeAuthorisationStatusNotification object:self];
 }
