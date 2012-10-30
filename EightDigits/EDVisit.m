@@ -466,8 +466,6 @@ static EDVisit	*_currentVisit = nil;
     NSString *screenHeight = [NSString stringWithFormat:@"%.0f", screenRect.size.height];
     NSString *acceptedLang = [[NSLocale preferredLanguages] objectAtIndex:0];
     
-    NSLog(@"Tse tse tse %@, %@", screenWidth, screenHeight);
-    
     UIDevice *device = [UIDevice currentDevice];
     NSString *systemVersion = [device systemVersion];
     NSString *systemName = [device systemName];
