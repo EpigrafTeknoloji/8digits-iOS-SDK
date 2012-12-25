@@ -328,10 +328,7 @@
 	EDHit *hit = objc_getAssociatedObject(self, @"ED_hit");
 	
 	if (hit == nil || hit.endDate) {
-<<<<<<< HEAD
-=======
 
->>>>>>> Bugfix
 		hit = ED_ARC_AUTORELEASE([[EDHit alloc] initWithController:self]);
 		
 		EDClassInfo *info = [[EDMonitor defaultMonitor] classInfoForClass:[self class]];
