@@ -540,7 +540,12 @@ static EDVisit	*_currentVisit = nil;
 	
 	[self.hitArray makeObjectsPerformSelector:@selector(end)];
 	[self.eventArray makeObjectsPerformSelector:@selector(trigger)];	
-	[self.nonRegisteredHitArray makeObjectsPerformSelector:@selector(start)];
+//	[self.nonRegisteredHitArray makeObjectsPerformSelector:@selector(start)];
+	
+	for (int i=0; i<self.nonRegisteredHitArray.count; i++) {
+		EDHit *hit = [self.nonRegisteredHitArray objectAtIndex:i];
+		[hit start];
+	}
 	
 	EDVisitor *currentVisitor = [[EDVisitor alloc] init];
 	[currentVisitor setVisitorCode:self.visitorCode];
