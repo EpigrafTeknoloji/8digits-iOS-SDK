@@ -156,7 +156,7 @@ static EDVisit	*_currentVisit = nil;
 		
 		_urlPrefix = ED_ARC_RETAIN([dict objectForKey:@"EDURLPrefix"]);
 		
-		if (![_urlPrefix hasPrefix:@"http://"]) {
+		if (![_urlPrefix hasPrefix:@"http://"] && ![_urlPrefix hasPrefix:@"https://"]) {
 			NSString *newURLPrefix = [NSString stringWithFormat:@"http://%@", _urlPrefix];
 			_urlPrefix = ED_ARC_RETAIN(newURLPrefix);
 		}
@@ -362,7 +362,7 @@ static EDVisit	*_currentVisit = nil;
     self.password = password;
     self.trackingCode = trackingCode;
     
-    if (![urlPrefix hasPrefix:@"http://"]) {
+    if (![urlPrefix hasPrefix:@"http://"] && ![_urlPrefix hasPrefix:@"https://"]) {
         NSString *newURLPrefix = [NSString stringWithFormat:@"http://%@", urlPrefix];
         urlPrefix = ED_ARC_RETAIN(newURLPrefix);
     }

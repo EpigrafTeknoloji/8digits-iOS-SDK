@@ -17,7 +17,9 @@
 
 #import "ED_ARC.h"
 
-@interface EDVisitor ()
+@interface EDVisitor () {
+    NSMutableDictionary *_visitorAttributes;
+}
 
 @property (nonatomic, strong)				ASINetworkQueue	*queue;
 
@@ -38,6 +40,11 @@ static EDVisitor *_currentVisitor = nil;
 @synthesize score			= _score;
 
 @synthesize visit			= _visit;
+
+@synthesize fullName        = _fullName;
+@synthesize gender          = _gender;
+@synthesize age             = _age;
+@synthesize avatarPath      = _avatarPath;
 
 #if !__has_feature(objc_arc)
 - (void)dealloc {
@@ -78,8 +85,26 @@ static EDVisitor *_currentVisitor = nil;
 
 #pragma mark - Public
 
+- (NSDictionary *)visitorAttributes {
+    
+    if (_visitorAttributes == nil) {
+        
+        NSString *documentsDirectory = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
+        NSString *path = [documentsDirectory stringByAppendingPathComponent:@"EDVisitorInfo"];
+        
+        _visitorAttributes = [[NSMutableDictionary alloc] initWithContentsOfFile:path];
+        
+        if (_visitorAttributes == nil) {
+            _visitorAttributes = [[NSMutableDictionary alloc] init];
+        }
+        
+    }
+    
+    return _visitorAttributes;
+}
+
 - (NSURL *)urlForImageForBadgeWithID:(NSString *)badgeID {
-	NSString *URLString = [NSString stringWithFormat:@"%@/badge/image/%@", self.visitorCode, badgeID];
+	NSString *URLString = [NSString stringWithFormat:@"%@/badge/image/%@", self.visit.urlPrefix, badgeID];
 	return [NSURL URLWithString:URLString];
 }
 
@@ -298,6 +323,154 @@ static EDVisitor *_currentVisitor = nil;
 	[self.queue addOperation:request];
 	[self.queue go];
 	
+}
+
+- (void)setVisitorAttributesFromDictionary:(NSDictionary *)dictionary withCompletionHandler:(void (^)(NSString *))completionHandler {
+    
+    NSString *documentsDirectory = [NSSearchPathForDirectoriesInDomains(NSDocumentDirectory, NSUserDomainMask, YES) lastObject];
+    NSString *path = [documentsDirectory stringByAppendingPathComponent:@"EDVisitorInfo"];
+    
+    if (_visitorAttributes == nil) {
+        _visitorAttributes = [[NSMutableDictionary alloc] initWithContentsOfFile:path];
+        
+        if (_visitorAttributes == nil) {
+            _visitorAttributes = [[NSMutableDictionary alloc] init];
+        }
+        
+    }
+    
+    NSMutableString *keyString = [[NSMutableString alloc] init];
+    NSMutableString *valueString = [[NSMutableString alloc] init];
+    
+    for (NSString *key in dictionary.allKeys) {
+        NSString *value = [dictionary valueForKey:key];
+        [keyString appendFormat:@"%@;; ", key];
+        [valueString appendFormat:@"%@;; ", value];
+    }
+    
+    [keyString deleteCharactersInRange:NSMakeRange(keyString.length - 3, 3)];
+    [valueString deleteCharactersInRange:NSMakeRange(valueString.length - 3, 3)];
+    
+    NSString *URLString = [NSString stringWithFormat:@"%@/visitor/setAttribute", self.visit.urlPrefix];
+	ASIFormDataRequest *request = [[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:URLString]];
+	[request setPostValue:self.visit.authToken forKey:@"authToken"];
+	[request setPostValue:self.visitorCode forKey:@"visitorCode"];
+	[request setPostValue:self.visit.trackingCode forKey:@"trackingCode"];
+	[request setPostValue:keyString forKey:@"keys"];
+    [request setPostValue:valueString forKey:@"values"];
+	
+	[request setCompletionBlock:^(void){
+        
+		NSDictionary *dict = [request.responseString objectFromJSONString];
+		
+		NSInteger result = [[[dict objectForKey:@"result"] objectForKey:@"code"] intValue];
+		
+		if (result != 0) {
+			NSString *error = [[dict objectForKey:@"result"] objectForKey:@"message"];
+			if (completionHandler) {
+				completionHandler(error);
+			}
+			if (self.visit.logging) {
+				NSLog(@"8digits: Failed to set values for keys: %@, reason: %@", keyString, error);
+			}
+		}
+		
+		else {
+			[_visitorAttributes addEntriesFromDictionary:dictionary];
+            [_visitorAttributes writeToFile:path atomically:YES];
+
+			if (completionHandler) {
+				completionHandler(nil);
+			}
+			if (self.visit.logging) {
+				NSLog(@"8digits: Successfully set values for keys: %@ for visitor: %@", keyString, self.visitorCode);
+			}
+		}
+		
+	}];
+	
+	[request setFailedBlock:^(void){
+		NSString *error = [request.error localizedDescription];
+		self.score = EDVisitorScoreNotLoaded;
+		if (completionHandler) {
+			completionHandler(error);
+		}
+		if (self.visit.logging) {
+            NSLog(@"8digits: Failed to set values for keys: %@, reason: %@", keyString, error);
+		}
+	}];
+	
+	[self.queue addOperation:request];
+	[self.queue go];
+    
+}
+
+- (NSString *)fullName {
+    if (_fullName == nil) {
+        _fullName = [self.visitorAttributes objectForKey:@"fullName"];
+    }
+    return _fullName;
+}
+
+- (EDVisitorGender)gender {
+    if (_gender == EDVisitorGenderNotSpecified) {
+        NSString *genderString = [self.visitorAttributes objectForKey:@"gender"];
+        if (genderString == nil) {
+            _gender = EDVisitorGenderNotSpecified;
+        }
+        else {
+            _gender = [genderString isEqualToString:@"M"] ? EDVisitorGenderMale : EDVisitorGenderFemale;
+        }
+    }
+    return _gender;
+}
+
+- (NSInteger)age {
+    if (_age == 0) {
+        _age = [[self.visitorAttributes objectForKey:@"age"] integerValue];
+    }
+    return _age;
+}
+
+- (NSString *)avatarPath {
+    if (_avatarPath == nil) {
+        _avatarPath = [self.visitorAttributes objectForKey:@"avatarPath"];
+    }
+    return _avatarPath;
+}
+
+- (void)setFullName:(NSString *)fullName {
+    if ([_fullName isEqualToString:fullName]) {
+        return;
+    }
+    [self setVisitorAttributesFromDictionary:@{@"fullName" : fullName} withCompletionHandler:nil];
+}
+
+- (void)setGender:(EDVisitorGender)gender {
+    if (_gender == gender) {
+        return;
+    }
+    
+    if (gender == EDVisitorGenderNotSpecified) {
+        return;
+    }
+    
+    NSString *genderString = gender == EDVisitorGenderMale ? @"M" : @"F";
+    [self setVisitorAttributesFromDictionary:@{@"gender" : genderString} withCompletionHandler:nil];
+}
+
+- (void)setAge:(NSInteger)age {
+    if (_age == age) {
+        return;
+    }
+    [self setVisitorAttributesFromDictionary:@{@"age" : [NSString stringWithFormat:@"%i", age]} withCompletionHandler:nil];
+}
+
+- (void)setAvatarPath:(NSString *)avatarPath {
+    if (_avatarPath == avatarPath) {
+        return;
+    }
+    [self setVisitorAttributesFromDictionary:@{@"avatarPath" : avatarPath} withCompletionHandler:nil];
 }
 
 @end
