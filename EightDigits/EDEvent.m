@@ -105,7 +105,7 @@
 - (void)trigger {
 	
 	if (self.visit.logging) {
-		NSLog(@"8digits: Event %@ for %@ (%@) will trigger", self.value, self.key, self.hitCode);
+		NSLog(@"8digits: Event %@ for %@ (%@) will trigger", self.value, self.key, self.hitCode ? self.hitCode : @"no-hitcode");
 	}
 	
 	if (self.hit) {
@@ -140,7 +140,7 @@
 	[request setCompletionBlock:^(void){
 		
 		if (self.visit.logging) {
-			NSLog(@"8digits: Event %@ for %@ (%@) did trigger", self.value, self.key, self.hitCode);
+			NSLog(@"8digits: Event %@ for %@ (%@) did trigger", self.value, self.key, self.hitCode ? self.hitCode : @"no-hitcode");
 		}
 		
 		if (self.hit) {
