@@ -163,9 +163,14 @@
 	
 	[self setEndDate:[NSDate date]];
 	
-	if (!self.registered || self.events.count) {
+	if (!self.registered) {
 		return;
 	}
+    
+    if (self.events.count) {
+        [self.events makeObjectsPerformSelector:@selector(trigger)];
+        return;
+    }
 	
 	[self requestEnd];
 	[self.visit hitWillEnd:self];
