@@ -71,6 +71,17 @@ static NSString *EDVisitDidChangeAuthorisationStatusNotification = @"EDVisitDidC
  */
 @property (nonatomic, strong, readonly)					NSArray		*nonRegisteredHits;
 
+/**
+    Longtitude of location
+ */
+@property (nonatomic, strong)                           NSString    *longitude;
+
+
+/**
+    Latitude of location
+ */
+@property (nonatomic, strong)                           NSString    *latitude;
+
 
 /**
 	Current visit
@@ -111,6 +122,14 @@ static NSString *EDVisitDidChangeAuthorisationStatusNotification = @"EDVisitDidC
 	@param authToken auth token to be used for this visit
  */
 - (void)startWithAuthToken:(NSString *)authToken;
+
+/**
+ Sets location of visitor.
+ Use this method before starting new visit.
+ @param longtitude  long value of location
+ @param latitude    lat value of location
+ */
+- (void)setLocationWithLongitude:(NSString *)longitude andLatitude:(NSString *)latitude;
 
 /**
 	Ends the visit

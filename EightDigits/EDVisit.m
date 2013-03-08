@@ -94,6 +94,9 @@ static EDVisit	*_currentVisit = nil;
 @synthesize reachability			= _reachability;
 @synthesize suspended				= _suspended;
 
+@synthesize longitude               = _longitude;
+@synthesize latitude                = _latitude;
+
 #if !__has_feature(objc_arc)
 - (void)dealloc {
 	
@@ -473,6 +476,13 @@ static EDVisit	*_currentVisit = nil;
     [_visitRequest setPostValue:@"0.0.0" forKey:@"flashVersion"];
     [_visitRequest setPostValue:@"false" forKey:@"javaEnabled"];
 	
+    
+    if(self.latitude != nil && self.longitude != nil) {
+        [_visitRequest setPostValue:self.latitude forKey:@"latitude"];
+        [_visitRequest setPostValue:self.longitude forKey:@"longitude"];
+    }
+    
+    
 	__unsafe_unretained EDVisit *selfVisit = self;
 	
 	[self.visitRequest setCompletionBlock:^(void){
@@ -628,6 +638,11 @@ static EDVisit	*_currentVisit = nil;
 	[aCoder encodeObject:self.startDate forKey:@"startDate"];
 	[aCoder encodeObject:self.endDate forKey:@"endDate"];
 	
+}
+
+- (void) setLocationWithLongitude:(NSString *)longitude andLatitude:(NSString *)latitude {
+    self.longitude = longitude;
+    self.latitude = latitude;
 }
 
 @end
