@@ -17,7 +17,7 @@ Uygulama her açıldığında bir visit oluşturulur ve bütün işlemler bu vis
 
 Uygulama kapandığında visit de sonlanmalıdır.
 
-Bir visit başlatmak için `username`, `password`, `trackingCode` ve `URLPrefix` parametrelerine ihtiyaç vardır. Bu bilgileri 8digits profil ayarları bölümünde bulabilirsiniz.
+Bir visit başlatmak için `Api Key`, `trackingCode` ve `URLPrefix` parametrelerine ihtiyaç vardır. Bu bilgileri 8digits profil ayarları bölümünde bulabilirsiniz.
 
 ###Visitor
 
@@ -103,8 +103,7 @@ Uygulama açıldığı anda bir visit başlatmalı ve uygulama kapandığında b
 Bu işlemi tercihen `AppDelegate` sınıfınızın, uygulama açıldığında çağırılan `application:didFinishLaunchingWithOptions:` metodunun içerisine şu kodu ekleyerek yapabilirsiniz:
 
 ```
-[[EDVisit currentVisit] startWithUsername:@"your-username"
-								 password:@"your-password"
+[[EDVisit currentVisit] startWithApiKey:@"your-api-key"
 							 trackingCode:@"your-tracking-code"
 								urlPrefix:@"your-url-prefix"];
 ```
@@ -112,10 +111,10 @@ Bu işlemi tercihen `AppDelegate` sınıfınızın, uygulama açıldığında ç
 Eğer `EightDigits.plist` dosyasına `EDTrackingCode` keyine karşılık tracking code değerinizi ve `EDURLPrefix`keyine karşılık api URL prefix değerinizi girdiyseniz bu visit başlatma işlemini şu kod satırıyla da yapabilirsiniz.
 
 ```
-[[EDVisit currentVisit] startWithUsername:@"your-username" password:@"your-password"];
+[[EDVisit currentVisit] startWithApiKey:@"your-api-key"];
 ```
 
-**Not:** Güvenlik sebeplerinden dolayı (bundle içerisindeki .plist dosyalarına doğrudan erişilebildiğinden) `username` ve `password` değerlerinizin bir .plist dosyasında saklanması **kesinlikle tavsiye edilmez.** 
+**Not:** Güvenlik sebeplerinden dolayı (bundle içerisindeki .plist dosyalarına doğrudan erişilebildiğinden) `Api Key` değerinizin .plist dosyasında saklanması **kesinlikle tavsiye edilmez.** 
 
 Eğer kullanıcı adı ve şifrenizi herhangi bir şekilde uygulamanızın içerisinde _hardcoded_ olarak tutmak istemiyorsanız, _authentication_ işlemini kendi serverlarınız üzerinde yapıp 8digits API'ye sadece size dönen _auth token_'ı vererek visit başlatabilirsiniz. Bunun için elinizdeki _auth token_'ı string halinde `[[EDVisit currentVisit] startWithAuthToken:]` metoduna göndermeniz yeterlidir.
 
