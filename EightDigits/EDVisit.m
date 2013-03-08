@@ -72,8 +72,7 @@ static EDVisit	*_currentVisit = nil;
 @synthesize visitorCode				= _visitorCode;
 @synthesize sessionCode				= _sessionCode;
 
-@synthesize username				= _username;
-@synthesize password				= _password;
+@synthesize apiKey                  = _apiKey;
 
 @synthesize currentlyValid			= _currentlyValid;
 @synthesize authorised				= _authorised;
@@ -222,11 +221,6 @@ static EDVisit	*_currentVisit = nil;
 	return (NSArray *)self.nonRegisteredHitArray;
 }
 
-- (void)setUsername:(NSString *)username password:(NSString *)password {
-	[self setUsername:username];
-	[self setPassword:password];
-}
-
 - (NSString *)visitorCode {
 	
 	if (!_visitorCode) {
@@ -331,7 +325,7 @@ static EDVisit	*_currentVisit = nil;
 
 - (void)validate {
 	
-	if (!self.urlPrefix || !self.trackingCode || !self.username || !self.password) {
+	if (!self.urlPrefix || !self.trackingCode || !self.apiKey) {
 		[self.validationDelegate visitDidFailPermanently:self];
 		return;
 	}
@@ -340,7 +334,7 @@ static EDVisit	*_currentVisit = nil;
 
 - (void)start {
 	
-	if (!self.password || !self.password.length || !self.username || !self.username.length) {
+	if (!self.apiKey || !self.apiKey.length) {
 		NSLog(@"8digits warning: Username or password not set, failing to start visit.");
 		return;
 	}
@@ -351,15 +345,14 @@ static EDVisit	*_currentVisit = nil;
 	
 }
 
-- (void)startWithUsername:(NSString *)username password:(NSString *)password {
-	[self setUsername:username password:password];
+- (void)startWithApiKey:(NSString *)apiKey {
+	[self setApiKey:apiKey];
 	[self start];
 }
 
-- (void)startWithUsername:(NSString *)username password:(NSString *)password trackingCode:(NSString *)trackingCode urlPrefix:(NSString *)urlPrefix {
+- (void) startWithApiKey:(NSString *)apiKey trackingCode:(NSString *)trackingCode urlPrefix:(NSString *)urlPrefix {
 	
-	self.username = username;
-    self.password = password;
+	self.apiKey = apiKey;
     self.trackingCode = trackingCode;
     
     if (![urlPrefix hasPrefix:@"http://"] && ![_urlPrefix hasPrefix:@"https://"]) {
@@ -403,8 +396,7 @@ static EDVisit	*_currentVisit = nil;
 	
 	NSString *URLString = [NSString stringWithFormat:@"%@/auth", self.urlPrefix]; 
 	_authRequest = [[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:URLString]];
-	[_authRequest setPostValue:self.username forKey:@"username"];
-	[_authRequest setPostValue:self.password forKey:@"password"];
+	[_authRequest setPostValue:self.apiKey forKey:@"apiKey"];
 	
 	__unsafe_unretained EDVisit *selfVisit = self;
 	

@@ -52,14 +52,7 @@ static NSString *EDVisitDidChangeAuthorisationStatusNotification = @"EDVisitDidC
 	8digits username
 	MUST be non-nil by the time the start method is called.
  */
-@property (nonatomic, strong)							NSString	*username;
-
-/**
-	8digits password
-	MUST be non-nil by the time the start method is called.
- */
-@property (nonatomic, strong)							NSString	*password;
-- (void)setUsername:(NSString *)username password:(NSString *)password;
+@property (nonatomic, strong)							NSString	*apiKey;
 
 
 /**
@@ -101,7 +94,7 @@ static NSString *EDVisitDidChangeAuthorisationStatusNotification = @"EDVisitDidC
 	@param username 8digits username
 	@param password 8digits password
  */
-- (void)startWithUsername:(NSString *)username password:(NSString *)password;
+- (void)startWithApiKey:(NSString *)apiKey;
 
 /**
 	Sets the username, password, trackingCode and urlPrefix parameters and calls the start method
@@ -110,7 +103,7 @@ static NSString *EDVisitDidChangeAuthorisationStatusNotification = @"EDVisitDidC
 	@param trackingCode 8digits tracking code; uses the default value (string value with EDTrackingCode key inside EightDigits.plist) if nil
 	@param urlPrefix 8digits URL prefix; uses the default value (string value with EDURLPrefix key inside EightDigits.plist) if nil
  */
-- (void)startWithUsername:(NSString *)username password:(NSString *)password trackingCode:(NSString *)trackingCode urlPrefix:(NSString *)urlPrefix;
+- (void)startWithApiKey:(NSString *)apiKey trackingCode:(NSString *)trackingCode urlPrefix:(NSString *)urlPrefix;
 
 /**
 	Starts the visit directly with an already authorised token
