@@ -221,7 +221,26 @@ if (self.badges == nil) {
 
 ### Tum Badge Bilgileri
 
-Hesabızda yer alan tum badge'lere ve bilgilerine ulaşmak için, 
+Hesabızda yer alan tum badge'lere ve bilgilerine ulaşmak için, `EdVisitor` nesnesinin, `accountBadges` değişkenini kullanabilirsiniz. Bu değişkenin değerinin `nil` olması, badgelerin henüz yüklenmediği anlamina gelir. 8digits SDK, badgelerin sunucudan asenkron olarak çekilmesini de sağlar:
+
+```
+self.accountBadges = [[EDVisitor currentVisitor] accountBadges];
+	
+if (self.accountBadges == nil) {
+	[[EDVisitor currentVisitor] loadBadgesWithCompletionHandler:^(NSArray *badges, NSError *error) {
+		if (error != nil) {
+			// Badges did not load. Do something with the error.
+		}
+		
+		else {
+			self.accountBadges = badges;
+		}
+	}
+}
+
+```
+`loadBadgesWithCompletionHandler:` metodunu bir kere çağırmanız sonucu `EDVisitor` nesnesinin `accountBadges` değişkeni güncellenecektir. Sonraki kullanımlarda badgelere direkt olarak `[[EDVisitor currentVisitor] accountBadges]` şeklinde erişebilirsiniz.
+
 
 ####Skor bilgileri
 
