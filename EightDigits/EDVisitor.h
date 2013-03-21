@@ -48,7 +48,13 @@ typedef enum _EDVisitorGender {
 /**
 	Asynchronously loads the visitor badges as an array of badge identifiers. Calls completionHandler when complete. Error will be nil on success.
  */
+- (void)loadVisitorBadgesWithCompletionHandler:(void(^)(NSArray *badges, NSString *error))completionHandler;
+
+/**
+ Asynchronously loads the visitor badges as an array of badge identifiers. Calls completionHandler when complete. Error will be nil on success.
+ */
 - (void)loadBadgesWithCompletionHandler:(void(^)(NSArray *badges, NSString *error))completionHandler;
+
 
 /**
 	Returns the url for the image of a badge

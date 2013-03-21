@@ -110,10 +110,9 @@ static EDVisitor *_currentVisitor = nil;
 
 - (void)loadBadgesWithCompletionHandler:(void (^)(NSArray *badges, NSString *error))completionHandler {
 	
-	NSString *URLString = [NSString stringWithFormat:@"%@/visitor/badges", self.visit.urlPrefix];
+	NSString *URLString = [NSString stringWithFormat:@"%@/badge/list", self.visit.urlPrefix];
 	ASIFormDataRequest *request = [[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:URLString]];
 	[request setPostValue:self.visit.authToken forKey:@"authToken"];
-	[request setPostValue:self.visitorCode forKey:@"visitorCode"];
 	[request setPostValue:self.visit.trackingCode forKey:@"trackingCode"];
 	
 	[request setCompletionBlock:^(void){
@@ -160,6 +159,61 @@ static EDVisitor *_currentVisitor = nil;
 	[self.queue go];
 	
 }
+
+- (void)loadVisitorBadgesWithCompletionHandler:(void (^)(NSArray *badges, NSString *error))completionHandler {
+	
+	NSString *URLString = [NSString stringWithFormat:@"%@/visitor/badges", self.visit.urlPrefix];
+	ASIFormDataRequest *request = [[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:URLString]];
+	[request setPostValue:self.visit.authToken forKey:@"authToken"];
+	[request setPostValue:self.visitorCode forKey:@"visitorCode"];
+	[request setPostValue:self.visit.trackingCode forKey:@"trackingCode"];
+	
+	[request setCompletionBlock:^(void){
+        
+		NSDictionary *dict = [request.responseString objectFromJSONString];
+		
+		NSInteger result = [[[dict objectForKey:@"result"] objectForKey:@"code"] intValue];
+		
+		if (result != 0) {
+			NSString *error = [[dict objectForKey:@"result"] objectForKey:@"message"];
+			self.badges = nil;
+			if (completionHandler) {
+				completionHandler(nil, error);
+			}
+			if (self.visit.logging) {
+				NSLog(@"8digits: Failed to load badges for %@, reason: %@", self.visitorCode, error);
+			}
+		}
+		
+		else {
+			self.badges = [[dict objectForKey:@"data"] objectForKey:@"badges"];
+			if (completionHandler) {
+				completionHandler(self.badges, nil);
+			}
+			if (self.visit.logging) {
+				NSLog(@"8digits: Loaded %i badges for %@", self.badges.count, self.visitorCode);
+			}
+		}
+		
+	}];
+	
+	[request setFailedBlock:^(void){
+		NSString *error = [request.error localizedDescription];
+		self.badges = nil;
+		if (completionHandler) {
+			completionHandler(nil, error);
+		}
+		if (self.visit.logging) {
+			NSLog(@"8digits: Failed to load badges for %@, reason: %@", self.visitorCode, error);
+		}
+	}];
+	
+	[self.queue addOperation:request];
+	[self.queue go];
+	
+}
+
+
 
 - (void)loadScoreWithCompletionHandler:(void (^)(NSInteger score, NSString *error))completionHandler {
 	
