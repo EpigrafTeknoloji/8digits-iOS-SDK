@@ -205,7 +205,7 @@ Uygulamanızın o anki kullanıcısının badge bilgilerine `EDVisitor` nesnesin
 self.badges = [[EDVisitor currentVisitor] badges];
 	
 if (self.badges == nil) {
-	[[EDVisitor currentVisitor] loadBadgesWithCompletionHandler:^(NSArray *badges, NSError *error) {
+	[[EDVisitor currentVisitor] loadVisitorBadgesWithCompletionHandler:^(NSArray *badges, NSError *error) {
 		if (error != nil) {
 			// Badges did not load. Do something with the error.
 		}
@@ -218,6 +218,10 @@ if (self.badges == nil) {
 
 ```
 `loadBadgesWithCompletionHandler:` metodunu bir kere çağırmanız sonucu `EDVisitor` nesnesinin `badges` değişkeni güncellenecektir. Sonraki kullanımlarda badgelere direkt olarak `[[EDVisitor currentVisitor] badges]` şeklinde erişebilirsiniz.
+
+### Tum Badge Bilgileri
+
+Hesabızda yer alan tum badge'lere ve bilgilerine ulaşmak için, 
 
 ####Skor bilgileri
 

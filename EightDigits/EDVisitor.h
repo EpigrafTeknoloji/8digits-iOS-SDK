@@ -41,9 +41,16 @@ typedef enum _EDVisitorGender {
 
 /**
 	Array of badge identifiers of badges of the visitor
-	nil until loadBadgesWithCompletionHandler: has completed
+	nil until loadVisitorBadgesWithCompletionHandler: has completed
  */
 @property (nonatomic, strong, readonly) NSArray		*badges;
+
+/**
+ Array of badge identifiers of badges of the account
+ nil until loadBadgesWithCompletionHandler: has completed
+ */
+@property (nonatomic, strong, readonly) NSArray		*accountBadges;
+
 
 /**
 	Asynchronously loads the visitor badges as an array of badge identifiers. Calls completionHandler when complete. Error will be nil on success.
@@ -51,7 +58,7 @@ typedef enum _EDVisitorGender {
 - (void)loadVisitorBadgesWithCompletionHandler:(void(^)(NSArray *badges, NSString *error))completionHandler;
 
 /**
- Asynchronously loads the visitor badges as an array of badge identifiers. Calls completionHandler when complete. Error will be nil on success.
+ Asynchronously loads the account badges as an array of badge identifiers. Calls completionHandler when complete. Error will be nil on success.
  */
 - (void)loadBadgesWithCompletionHandler:(void(^)(NSArray *badges, NSString *error))completionHandler;
 

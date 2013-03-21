@@ -24,6 +24,7 @@
 @property (nonatomic, strong)				ASINetworkQueue	*queue;
 
 @property (nonatomic, strong, readwrite)	NSArray			*badges;
+@property (nonatomic, strong, readwrite)	NSArray			*accountBadges;
 @property (nonatomic, assign, readwrite)	NSInteger		 score;
 
 @end
@@ -38,6 +39,7 @@ static EDVisitor *_currentVisitor = nil;
 
 @synthesize badges			= _badges;
 @synthesize score			= _score;
+@synthesize accountBadges   = _accountBadges;
 
 @synthesize visit			= _visit;
 
@@ -123,7 +125,7 @@ static EDVisitor *_currentVisitor = nil;
 		
 		if (result != 0) {
 			NSString *error = [[dict objectForKey:@"result"] objectForKey:@"message"];
-			self.badges = nil;
+			self.accountBadges = nil;
 			if (completionHandler) {
 				completionHandler(nil, error);
 			}
@@ -133,7 +135,7 @@ static EDVisitor *_currentVisitor = nil;
 		}
 		
 		else {
-			self.badges = [[dict objectForKey:@"data"] objectForKey:@"badges"];
+			self.accountBadges = [[dict objectForKey:@"data"] objectForKey:@"badgeList"];
 			if (completionHandler) {
 				completionHandler(self.badges, nil);
 			}
@@ -146,7 +148,7 @@ static EDVisitor *_currentVisitor = nil;
 	
 	[request setFailedBlock:^(void){
 		NSString *error = [request.error localizedDescription];
-		self.badges = nil;
+		self.accountBadges = nil;
 		if (completionHandler) {
 			completionHandler(nil, error);
 		}
