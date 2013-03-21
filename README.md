@@ -219,7 +219,7 @@ if (self.badges == nil) {
 ```
 `loadBadgesWithCompletionHandler:` metodunu bir kere çağırmanız sonucu `EDVisitor` nesnesinin `badges` değişkeni güncellenecektir. Sonraki kullanımlarda badgelere direkt olarak `[[EDVisitor currentVisitor] badges]` şeklinde erişebilirsiniz.
 
-### Tum Badge Bilgileri
+#### Tum Badge Bilgileri
 
 Hesabızda yer alan tum badge'lere ve bilgilerine ulaşmak için, `EdVisitor` nesnesinin, `accountBadges` değişkenini kullanabilirsiniz. Bu değişkenin değerinin `nil` olması, badgelerin henüz yüklenmediği anlamina gelir. 8digits SDK, badgelerin sunucudan asenkron olarak çekilmesini de sağlar:
 
@@ -241,6 +241,8 @@ if (self.accountBadges == nil) {
 ```
 `loadBadgesWithCompletionHandler:` metodunu bir kere çağırmanız sonucu `EDVisitor` nesnesinin `accountBadges` değişkeni güncellenecektir. Sonraki kullanımlarda badgelere direkt olarak `[[EDVisitor currentVisitor] accountBadges]` şeklinde erişebilirsiniz.
 
+#### Badge İmaj URL'ini almak
+Bu işlem için, `urlForImageForBadgeWithID:` methodunu kullanabilirsiniz. Parametre olarak, `badges` yada `accountBadges` array'lerinden elde etmiş olduğunuz badge'lerin id'lerini göndermeniz gerekmektedir. Size dönen URL'deki imajı kullanmış olduğunuz networking kütüphanesi ile, uygulamanıza UIImageView olarak yerleştirebilirsiniz. 
 
 ####Skor bilgileri
 
