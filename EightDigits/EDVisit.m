@@ -107,8 +107,8 @@ static EDVisit	*_currentVisit = nil;
 	[_visitorCode release];
 	[_sessionCode release];
 	
-	[_username release];
-	[_password release];
+//	[_username release];
+//	[_password release];
 	
 	[_hitArray release];
 	[_nonRegisteredHitArray release];
