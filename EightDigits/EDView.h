@@ -8,6 +8,12 @@
 
 #import <UIKit/UIKit.h>
 
+@class EDNotification;
+
 @interface EDView : UIView
+
+- (id)      initWithNotification:(EDNotification *) notification;
+- (void)    show;
+- (void)    hide;
 
 @end
