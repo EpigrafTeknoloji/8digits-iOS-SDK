@@ -16,9 +16,6 @@
 #import "EDEvent.h"
 #import "EDMonitor.h"
 
-//#import "ASIFormDataRequest.h"
-//#import "ASINetworkQueue.h"
-//#import "JSONKit.h"
 
 #import "ED_ARC.h"
 
@@ -45,8 +42,6 @@
 @property (nonatomic, strong)						NSDate				*startDate;
 @property (nonatomic, strong)						NSDate				*endDate;
 
-//@property (nonatomic, strong)						ASIFormDataRequest	*authRequest;
-//@property (nonatomic, strong)						ASIFormDataRequest	*visitRequest;
 
 
 - (void)authorise;
@@ -56,7 +51,6 @@
 - (void)failWithError:(NSString *)error;
 - (void)succeed;
 
-//- (void)queueDidFinish:(ASINetworkQueue *)queue;
 
 @end
 
@@ -112,9 +106,6 @@ static EDVisit	*_currentVisit = nil;
 	
 	[_startDate release];
 	[_endDate release];
-	
-	[_authRequest release];
-	[_visitRequest release];
 	
 	
 	[super dealloc];
@@ -178,37 +169,8 @@ static EDVisit	*_currentVisit = nil;
 				if (!self.authorised && self.authorisationTried) {
 					[self authorise];
 				}
-//                else if(self.authorised && !self.authorisationTried) {
-//				
-//                    [[EDNetwork sharedInstance].queue go];
-//				
-//                    [self.hitArray makeObjectsPerformSelector:@selector(end)];
-//                    [self.eventArray makeObjectsPerformSelector:@selector(trigger)];
-//                    [self.nonRegisteredHitArray makeObjectsPerformSelector:@selector(start)];
-//				}
-			}
+            }
         }];
-		
-//		[[NSNotificationCenter defaultCenter] addObserverForName:kReachabilityChangedNotification object:self.reachability queue:nil usingBlock:^(NSNotification *notification) {
-//			
-//			self.suspended = ![self.reachability isReachable];
-//			
-//			if (!self.suspended) {
-//				
-//				if (!self.authorised) {
-//					[self authorise];
-//					return;
-//				}
-//				
-//                [[EDNetwork sharedInstance].queue go];
-//				
-//				[self.hitArray makeObjectsPerformSelector:@selector(end)];
-//				[self.eventArray makeObjectsPerformSelector:@selector(trigger)];
-//				[self.nonRegisteredHitArray makeObjectsPerformSelector:@selector(start)];
-//				
-//			}
-//			
-//		}];
 		
 	}
 	

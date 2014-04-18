@@ -93,23 +93,6 @@ typedef enum : NSInteger {
     _httpClient = [[AFHTTPClient alloc] initWithBaseURL:[NSURL URLWithString:_baseURL]];
     _httpClient.parameterEncoding = AFFormURLParameterEncoding;
     
-//    __weak EDNetwork *weakSelf = self;
-    
-//    [_httpClient setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
-//        if(status == AFNetworkReachabilityStatusReachableViaWWAN ||
-//           status == AFNetworkReachabilityStatusReachableViaWiFi) {
-//            if(weakSelf.reachabilityBlock)
-//                weakSelf.reachabilityBlock(YES);
-//            
-//            NSLog(@"Network reachable");
-//        }
-//        else {
-//            if(weakSelf.reachabilityBlock)
-//                weakSelf.reachabilityBlock(NO);
-//            NSLog(@"Network not reachable");
-//        }
-//
-//    }];
 }
 
 - (void)postRequest:(NSString *)path params:(NSDictionary *)params completionBlock:(void (^)(id responseObject))completionBlock failBlock:(void (^)(NSError *error))failBlock {
@@ -125,10 +108,7 @@ typedef enum : NSInteger {
     
     AFHTTPRequestOperation *operation;
     
-//    if(_httpClient.networkReachabilityStatus == AFNetworkReachabilityStatusReachableViaWWAN ||
-//        _httpClient.networkReachabilityStatus == AFNetworkReachabilityStatusReachableViaWiFi) {
     
-        
         
         NSMutableURLRequest *request = [_httpClient requestWithMethod:type
                                                           path:path
@@ -148,10 +128,7 @@ typedef enum : NSInteger {
     
         if(!returning)
             [operation start];
-//    }
-//    else {
-////        [self showConnectionError:block];
-//    }
+
     
     return operation;
     
@@ -165,99 +142,14 @@ typedef enum : NSInteger {
 }
 
 
-//- (void)startMonitoringNetworkReachability {
-//    [self stopMonitoringNetworkReachability];
-//    
-//    if (!self.baseURL) {
-//        return;
-//    }
-//    
-//    self.networkReachability = SCNetworkReachabilityCreateWithName(kCFAllocatorDefault, [[[NSURL URLWithString:self.baseURL] host] UTF8String]);
-//    
-//    if (!self.networkReachability) {
-//        return;
-//    }
-//    
-//    __weak __typeof(&*self)weakSelf = self;
-//    AFNetworkReachabilityStatusBlock callback = ^(AFNetworkReachabilityStatus status) {
-//        __strong __typeof(&*weakSelf)strongSelf = weakSelf;
-//        if (!strongSelf) {
-//            return;
-//        }
-//        
-////        strongSelf.networkReachabilityStatus = status;
-//        if (strongSelf.reachabilityBlock) {
-//            strongSelf.reachabilityBlock(status);
-//        }
-//    };
-//    
-//    SCNetworkReachabilityContext context = {0, (__bridge void *)callback, AFNetworkReachabilityRetainCallback, AFNetworkReachabilityReleaseCallback, NULL};
-//    SCNetworkReachabilitySetCallback(self.networkReachability, AFNetworkReachabilityCallback, &context);
-//    
-//    /* Network reachability monitoring does not establish a baseline for IP addresses as it does for hostnames, so if the base URL host is an IP address, the initial reachability callback is manually triggered.
-//     */
-//    if (AFURLHostIsIPAddress(self.baseURL)) {
-//        SCNetworkReachabilityFlags flags;
-//        SCNetworkReachabilityGetFlags(self.networkReachability, &flags);
-//        dispatch_async(dispatch_get_main_queue(), ^{
-//            AFNetworkReachabilityStatus status = AFNetworkReachabilityStatusForFlags(flags);
-//            callback(status);
-//        });
-//    }
-//    
-//    SCNetworkReachabilityScheduleWithRunLoop(self.networkReachability, CFRunLoopGetMain(), kCFRunLoopCommonModes);
-//}
-//
-//- (void)stopMonitoringNetworkReachability {
-//    if (self.networkReachability) {
-//        SCNetworkReachabilityUnscheduleFromRunLoop(self.networkReachability, CFRunLoopGetMain(), kCFRunLoopCommonModes);
-//        
-//        CFRelease(_networkReachability);
-//        _networkReachability = NULL;
-//    }
-//}
-
 
 - (void)monitorReachability:(void (^)(BOOL))reachabilityBlock {
     
-//    AFNetworkReachabilityStatus status = _httpClient.networkReachabilityStatus;
-//    if(status == AFNetworkReachabilityStatusReachableViaWWAN ||
-//       status == AFNetworkReachabilityStatusReachableViaWiFi) {
-//        if(reachabilityBlock)
-//            reachabilityBlock(YES);
-//        
-//        NSLog(@"Network reachable");
-//    }
-//    else {
-//        if(reachabilityBlock)
-//            reachabilityBlock(NO);
-//        NSLog(@"Network not reachable");
-//    }
-    
-    
-//    self.baseURL = [_httpClient.baseURL absoluteString];
-    
-//    reachabilityBlock(YES);
     
     self.reachabilityBlock = reachabilityBlock;
     
     [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(reachabilityChanged:) name:AFNetworkingReachabilityDidChangeNotification object:nil];
     
-
-//    [_httpClient setReachabilityStatusChangeBlock:^(AFNetworkReachabilityStatus status) {
-//        if(status == AFNetworkReachabilityStatusReachableViaWWAN ||
-//           status == AFNetworkReachabilityStatusReachableViaWiFi) {
-//            if(reachabilityBlock)
-//                reachabilityBlock(YES);
-//            
-//            NSLog(@"Network reachable");
-//        }
-//        else {
-//            if(reachabilityBlock)
-//                reachabilityBlock(NO);
-//            NSLog(@"Network not reachable");
-//        }
-//    }];
 }
 
 - (void)reachabilityChanged:(NSNotification *)notification {

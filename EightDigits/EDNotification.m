@@ -32,7 +32,6 @@
     static dispatch_once_t onceToken;
     dispatch_once(&onceToken, ^{
         _lastNotifcation = [[EDNotification alloc] init];
-//        _lastNotifcation.title = @
     });
     
     return _lastNotifcation;

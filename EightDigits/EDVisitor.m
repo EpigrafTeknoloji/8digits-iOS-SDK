@@ -12,10 +12,6 @@
 #import "EDVisit.h"
 #import "EDVisit_Internal.h"
 
-//#import "ASIFormDataRequest.h"
-//#import "ASINetworkQueue.h"
-//#import "JSONKit.h"
-
 #import "EDNetwork.h"
 
 #import "ED_ARC.h"
@@ -24,7 +20,6 @@
     NSMutableDictionary *_visitorAttributes;
 }
 
-//@property (nonatomic, strong)				ASINetworkQueue	*queue;
 
 @property (nonatomic, strong, readwrite)	NSArray			*badges;
 @property (nonatomic, assign, readwrite)	NSInteger		 score;
@@ -35,7 +30,6 @@ static EDVisitor *_currentVisitor = nil;
 
 @implementation EDVisitor
 
-//@synthesize queue			= _queue;
 
 @synthesize visitorCode		= _visitorCode;
 
@@ -51,9 +45,8 @@ static EDVisitor *_currentVisitor = nil;
 
 #if !__has_feature(objc_arc)
 - (void)dealloc {
-	
-	[_queue release];
-	[_badges release];
+    
+    [_badges release];
 	
 	[super dealloc];
 	
@@ -75,10 +68,6 @@ static EDVisitor *_currentVisitor = nil;
 	self = [super init];
 	
 	if (self) {
-//		_queue = [[ASINetworkQueue alloc] init];
-//		[_queue setMaxConcurrentOperationCount:1];
-//		[_queue setShouldCancelAllRequestsOnFailure:NO];
-		
 		_score = EDVisitorScoreNotLoaded;
 	}
 	

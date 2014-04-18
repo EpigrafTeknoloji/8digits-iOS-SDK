@@ -31,9 +31,6 @@
 @property (nonatomic, strong, readwrite)			NSDate				*startDate;
 @property (nonatomic, strong, readwrite)			NSDate				*endDate;
 
-//@property (nonatomic, strong)						ASIFormDataRequest	*startRequest;
-//@property (nonatomic, strong)						ASIFormDataRequest	*endRequest;
-
 - (void)requestStart;
 - (void)requestEnd;
 
@@ -56,8 +53,6 @@
 @synthesize startDate				= _startDate;
 @synthesize endDate					= _endDate;
 
-//@synthesize startRequest			= _startRequest;
-//@synthesize endRequest				= _endRequest;
 
 #if !__has_feature(objc_arc)
 - (void)dealloc {
@@ -71,9 +66,6 @@
 
 	[_startDate release];
 	[_endDate release];
-	
-	[_startRequest release];
-	[_endRequest release];
 	
 	[super dealloc];
 	
