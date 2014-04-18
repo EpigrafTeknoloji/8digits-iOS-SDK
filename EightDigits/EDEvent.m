@@ -12,9 +12,8 @@
 #import "EDHit_Internal.h"
 #import "EDVisit.h"
 #import "EDVisit_Internal.h"
+#import "EDNotification.h"
 
-#import "JSONKit.h"
-#import "ASIFormDataRequest.h"
 
 #import "ED_ARC.h"
 
@@ -104,9 +103,8 @@
 
 - (void)trigger {
 	
-	if (self.visit.logging) {
-		NSLog(@"8digits: Event %@ for %@ (%@) will trigger", self.value, self.key, self.hitCode ? self.hitCode : @"no-hitcode");
-	}
+    [self.visit logMessage:@"Event %@ for %@ (%@) will trigger", self.value, self.key, self.hitCode ? self.hitCode : @"no-hitcode"];
+
 	
 	if (self.hit) {
 		[self.hit eventWillTrigger:self];
@@ -121,27 +119,23 @@
 			return;
 		}
 	}
-	
-	NSString *URLString = [NSString stringWithFormat:@"%@/event/create", self.visit.urlPrefix];
-	ASIFormDataRequest *request = [[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:URLString]];
-	[request setPostValue:self.visit.authToken forKey:@"authToken"];
-	[request setPostValue:self.visit.trackingCode forKey:@"trackingCode"];
-	[request setPostValue:self.visit.visitorCode forKey:@"visitorCode"];
-	[request setPostValue:self.visit.sessionCode forKey:@"sessionCode"];
-	[request setQueuePriority:NSOperationQueuePriorityVeryHigh];
-	
-	if (self.hit) {
-		[request setPostValue:self.hitCode forKey:@"hitCode"];
-	}
-	
-	[request setPostValue:self.key forKey:@"key"];
-	[request setPostValue:self.value forKey:@"value"];
-	
-	[request setCompletionBlock:^(void){
-		
-		if (self.visit.logging) {
-			NSLog(@"8digits: Event %@ for %@ (%@) did trigger", self.value, self.key, self.hitCode ? self.hitCode : @"no-hitcode");
-		}
+    NSString *service           = @"event/create";
+    
+    NSMutableDictionary *params = [NSMutableDictionary dictionaryWithObjectsAndKeys:self.visit.authToken, @"authToken",
+                                   self.visit.trackingCode, @"trackingCode",
+                                   self.visit.visitorCode, @"visitorCode",
+                                   self.visit.sessionCode, @"sessionCode",
+                                   self.key, @"key",
+                                   self.value, @"value",
+                                   nil];
+    if(self.hit) {
+        [params setObject:self.hitCode forKey:@"hitCode"];
+    }
+    
+    
+    [[EDNetwork sharedInstance] postRequest:service params:params completionBlock:^(id responseObject) {
+        
+        [self.visit logMessage:@"Event %@ for %@ (%@) did trigger", self.value, self.key, self.hitCode ? self.hitCode : @"no-hitcode"];
 		
 		if (self.hit) {
 			[self.hit eventDidTrigger:self];
@@ -150,10 +144,18 @@
 		else {
 			[self.visit eventDidTrigger:self];
 		}
-	}];
-	
-	[self.visit addRequest:request];
-	ED_ARC_RELEASE(request);
+        double delayInSeconds = 2.0;
+        dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, delayInSeconds * NSEC_PER_SEC);
+        dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+            //code to be executed on the main queue after delay
+           [EDNotification checkAndShowNotifications];
+        });
+        
+        
+
+    } failBlock:nil];
+    
+    ED_ARC_RELEASE(params);
 	
 }
 

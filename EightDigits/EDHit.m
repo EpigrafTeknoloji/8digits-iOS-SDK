@@ -15,9 +15,7 @@
 #import "EDVisit_Internal.h"
 #import "EDEvent.h"
 #import "EDMonitor.h"
-
-#import "ASIFormDataRequest.h"
-#import "JSONKit.h"
+#import "EDNotification.h"
 
 #import "ED_ARC.h"
 
@@ -32,9 +30,6 @@
 
 @property (nonatomic, strong, readwrite)			NSDate				*startDate;
 @property (nonatomic, strong, readwrite)			NSDate				*endDate;
-
-@property (nonatomic, strong)						ASIFormDataRequest	*startRequest;
-@property (nonatomic, strong)						ASIFormDataRequest	*endRequest;
 
 - (void)requestStart;
 - (void)requestEnd;
@@ -58,8 +53,6 @@
 @synthesize startDate				= _startDate;
 @synthesize endDate					= _endDate;
 
-@synthesize startRequest			= _startRequest;
-@synthesize endRequest				= _endRequest;
 
 #if !__has_feature(objc_arc)
 - (void)dealloc {
@@ -73,9 +66,6 @@
 
 	[_startDate release];
 	[_endDate release];
-	
-	[_startRequest release];
-	[_endRequest release];
 	
 	[super dealloc];
 	
@@ -142,10 +132,8 @@
 #pragma mark - Start stop
 
 - (void)start {
-	
-	if (self.visit.logging) {
-		NSLog(@"8digits: Hit %@ (%@) will start", self.path, self.hitCode);
-	}
+    
+    [self.visit logMessage:@"Hit %@ (%@) will start", self.path, self.hitCode];
 	
 	[self setRegistered:NO];
 	[self setStartDate:[NSDate date]];
@@ -156,10 +144,8 @@
 }
 
 - (void)end {
-	
-	if (self.visit.logging) {
-		NSLog(@"8digtis: Hit %@ (%@) will end", self.path, self.hitCode);
-	}
+    
+    [self.visit logMessage:@"Hit %@ (%@) will end", self.path, self.hitCode];
 	
 	[self setEndDate:[NSDate date]];
 	
@@ -178,78 +164,84 @@
 }
 
 - (void)requestStart {
-	
-	NSString *URLString = [NSString stringWithFormat:@"%@/hit/create", self.visit.urlPrefix];
-	
-	ED_ARC_RELEASE(_startRequest);
-	
-	_startRequest = [[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:URLString]];
-	[_startRequest setPostValue:self.visit.authToken forKey:@"authToken"];
-	[_startRequest setPostValue:self.visit.trackingCode forKey:@"trackingCode"];
-	[_startRequest setPostValue:self.visit.visitorCode forKey:@"visitorCode"];
-	[_startRequest setPostValue:self.visit.sessionCode forKey:@"sessionCode"];
-	[_startRequest setPostValue:self.title forKey:@"pageTitle"];
-	[_startRequest setPostValue:self.path forKey:@"path"];
-	[_startRequest setPostValue:self.hitCode forKey:@"hitCode"];
+	    
+    NSString *service = @"hit/create";
+    
+    NSMutableDictionary *params = [NSMutableDictionary dictionaryWithObjectsAndKeys:self.title, @"pageTitle",
+                                   self.path, @"path",
+                                   self.hitCode, @"hitCode",
+                                   nil];
+    if(self.visit) {
+        [params addEntriesFromDictionary:[NSDictionary dictionaryWithObjectsAndKeys:self.visit.authToken, @"authToken",
+                                         self.visit.trackingCode, @"trackingCode",
+                                         self.visit.visitorCode, @"visitorCode",
+                                         self.visit.sessionCode, @"sessionCode",
+                                          nil]];
+    }
+    
 	
 	__unsafe_unretained EDHit *selfHit = self;
-	
-	[_startRequest setCompletionBlock:^(void) {
+    
+    
+    NSOperationQueuePriority priority = self.events.count > 0 ? NSOperationQueuePriorityVeryHigh : NSOperationQueuePriorityHigh;
+    AFHTTPRequestOperation *operation = [[EDNetwork sharedInstance] baseRequest:service type:@"POST" params:params returning:YES completionBlock:^(id responseObject){
+        [selfHit.visit logMessage:@"Hit %@ (%@) did start", selfHit.path, selfHit.hitCode];
 		
-		if (self.visit.logging) {
-			NSLog(@"8digits: Hit %@ (%@) did start", self.path, self.hitCode);
-		}
+		NSDictionary *dict = [NSDictionary dictionaryWithDictionary:responseObject];
+		selfHit.hitCode = [[dict objectForKey:@"data"] objectForKey:@"hitCode"];
+		
+		selfHit.registered = YES;
+		[selfHit.visit hitDidStart:selfHit];
+		
+		[selfHit.eventArray makeObjectsPerformSelector:@selector(trigger)];
+        
+        ED_ARC_RELEASE(dict);
+        
+        double delayInSeconds = 2.0;
+        dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, delayInSeconds * NSEC_PER_SEC);
+        dispatch_after(popTime, dispatch_get_main_queue(), ^(void){
+            //code to be executed on the main queue after delay
+            [EDNotification checkAndShowNotifications];
+        });
 
-		NSDictionary *dict = [self.startRequest.responseString objectFromJSONString];
-		self.hitCode = [[dict objectForKey:@"data"] objectForKey:@"hitCode"];
-		
-		self.registered = YES;
-		[self.visit hitDidStart:selfHit];
-		
-		[self.eventArray makeObjectsPerformSelector:@selector(trigger)];
-		
-	}];
-	
-	[_startRequest setFailedBlock:^(void){
-		if (self.visit.logging) {
-			NSLog(@"8digits: Hit %@ (%@) did fail to start: %@", self.path, self.hitCode, self.startRequest.error.localizedDescription);
-		}
-	}];
-	
-	[_startRequest setQueuePriority:self.events.count > 0 ? NSOperationQueuePriorityVeryHigh : NSOperationQueuePriorityHigh];
-	[self.visit addRequest:self.startRequest];
+    } failBlock:^(NSError *error){
+        [selfHit.visit logMessage:@" Hit %@ (%@) did fail to start: %@", selfHit.path, selfHit.hitCode, error.localizedDescription];
+
+    }];
+    [operation setThreadPriority:priority];
+    [self.visit addRequest:operation];
+    
+    ED_ARC_RELEASE(params);
 	
 }
 
 - (void)requestEnd {
-	
-	NSString *URLString = [NSString stringWithFormat:@"%@/hit/end", self.visit.urlPrefix];
-	
-	ED_ARC_RELEASE(_endRequest);
-	
-	_endRequest = [[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:URLString]];
-	[_endRequest setPostValue:self.visit.authToken forKey:@"authToken"];
-	[_endRequest setPostValue:self.visit.trackingCode forKey:@"trackingCode"];
-	[_endRequest setPostValue:self.visit.visitorCode forKey:@"visitorCode"];
-	[_endRequest setPostValue:self.visit.sessionCode forKey:@"sessionCode"];
-	[_endRequest setPostValue:self.hitCode forKey:@"hitCode"];
+	   
+    NSString *service = @"hit/end";
+    
+    NSMutableDictionary *params = [NSMutableDictionary dictionaryWithObjectsAndKeys:self.visit.authToken, @"authToken",
+                                   self.visit.trackingCode, @"trackingCode",
+                                   self.visit.visitorCode, @"visitorCode",
+                                   self.visit.sessionCode, @"sessionCode",
+                                   self.hitCode, @"hitCode",
+                                   nil];
 	
 	__unsafe_unretained EDHit *selfHit = self;
-	
-	[_endRequest setCompletionBlock:^(void){
-		if (self.visit.logging) {
-			NSLog(@"8digits: Hit %@ (%@) did end", self.path, self.hitCode);
-		}
+    
+    
+    AFHTTPRequestOperation *operation = [[EDNetwork sharedInstance] baseRequest:service type:@"POST" params:params returning:YES completionBlock:^(id responseobject){
+        [self.visit logMessage:@"Hit %@ (%@) did end", self.path, self.hitCode];
 		[self.visit hitDidEnd:selfHit];
-	}];
-	
-	[_endRequest setFailedBlock:^(void) {
-		if (self.visit.logging) {
-			NSLog(@"8digits: Hit %@ (%@) did fail to end: %@", self.path, self.hitCode, self.endRequest.error.localizedDescription);
-		}
-	}];
-	
-	[self.visit addRequest:self.endRequest];
+
+    } failBlock:^(NSError *error){
+        
+        [self.visit logMessage:@"Hit %@ (%@) did fail to end: %@", self.path, self.hitCode, error.localizedDescription];
+       
+    }];
+    
+	[self.visit addRequest:operation];
+    ED_ARC_RELEASE(params);
+
 	
 }
 

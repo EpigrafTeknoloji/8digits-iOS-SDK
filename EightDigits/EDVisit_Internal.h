@@ -8,8 +8,8 @@
 
 #import "EDVisit.h"
 
-@class ASINetworkQueue;
-@class ASIHTTPRequest;
+//@class ASINetworkQueue;
+//@class ASIHTTPRequest;
 
 @class EDHit;
 @class EDEvent;
@@ -18,11 +18,11 @@
 
 @interface EDVisit ()
 
-@property (nonatomic, strong)	ASINetworkQueue					*networkQueue;
+//@property (nonatomic, strong)	ASINetworkQueue					*networkQueue;
 @property (nonatomic, assign)	id <EDVisitValidationDelegate>	 validationDelegate;
 
 - (void)validate;
-- (void)addRequest:(ASIHTTPRequest *)request;
+- (void)addRequest:(AFHTTPRequestOperation *)request;
 
 - (void)hitWillStart:(EDHit *)hit;
 - (void)hitDidStart:(EDHit *)hit;
@@ -32,6 +32,11 @@
 
 - (void)eventWillTrigger:(EDEvent *)event;
 - (void)eventDidTrigger:(EDEvent *)event;
+
+- (void)logMessage:(NSString *)format,...;
+- (void)logWarning:(NSString *)warning;
+- (void)logError:(NSString *)error;
+
 
 @end
 

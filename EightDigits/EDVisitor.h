@@ -41,27 +41,14 @@ typedef enum _EDVisitorGender {
 
 /**
 	Array of badge identifiers of badges of the visitor
-	nil until loadVisitorBadgesWithCompletionHandler: has completed
+	nil until loadBadgesWithCompletionHandler: has completed
  */
 @property (nonatomic, strong, readonly) NSArray		*badges;
 
 /**
- Array of badge identifiers of badges of the account
- nil until loadBadgesWithCompletionHandler: has completed
- */
-@property (nonatomic, strong, readonly) NSArray		*accountBadges;
-
-
-/**
 	Asynchronously loads the visitor badges as an array of badge identifiers. Calls completionHandler when complete. Error will be nil on success.
  */
-- (void)loadVisitorBadgesWithCompletionHandler:(void(^)(NSArray *badges, NSString *error))completionHandler;
-
-/**
- Asynchronously loads the account badges as an array of badge identifiers. Calls completionHandler when complete. Error will be nil on success.
- */
 - (void)loadBadgesWithCompletionHandler:(void(^)(NSArray *badges, NSString *error))completionHandler;
-
 
 /**
 	Returns the url for the image of a badge
@@ -74,24 +61,6 @@ typedef enum _EDVisitorGender {
 	Equals to EDVisitorScoreNotLoaded until loadScoreWithCompletionHandler:, increaseScoreBy:withCompletionHandler: or decreaseScoreBy:withCompletionHandler: has completed. Either one of these methods updates the score property.
  */
 @property (nonatomic, assign, readonly)	NSInteger	 score;
-
-/**
-	Asynchronously loads the visitor score as an array of badge identifiers. Calls completionHandler when complete. Error will be nil on success.
- */
-- (void)loadScoreWithCompletionHandler:(void(^)(NSInteger score, NSString *error))completionHandler;
-
-/**
-	Asynchronously increases visitor score by differential
-	Calls completionHandler when complete. Error will be nil on success.
- */
-- (void)increaseScoreBy:(NSInteger)differential withCompletionHandler:(void(^)(NSInteger newScore, NSString *error))completionHandler;
-
-/**
-	Asynchronously decreases visitor score by differential
-	Calls completionHandler when complete. Error will be nil on success.
- */
-- (void)decreaseScoreBy:(NSInteger)differential withCompletionHandler:(void(^)(NSInteger newScore, NSString *error))completionHandler;
-
 
 /**
 	Full name of the visitor. 

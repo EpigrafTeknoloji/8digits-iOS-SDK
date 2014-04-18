@@ -8,15 +8,18 @@
 
 #import <Foundation/Foundation.h>
 
+#import "EDNetwork.h"
 /**
 	Name of the notification that's posted when an EDVisit object changes authorisation status
  */
 static NSString *EDVisitDidChangeAuthorisationStatusNotification = @"EDVisitDidChangeAuthorisationStatusNotification";
+
+
 	
 /**
 	8digits visit
  */
-@interface EDVisit : NSObject <NSCoding>
+@interface EDVisit : NSObject <NSCoding, EDOperationQueueDelegate>
 
 
 /**

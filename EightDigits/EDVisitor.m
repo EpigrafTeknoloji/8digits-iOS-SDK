@@ -10,10 +10,9 @@
 #import "EDVisitor_Internal.h"
 
 #import "EDVisit.h"
+#import "EDVisit_Internal.h"
 
-#import "ASIFormDataRequest.h"
-#import "ASINetworkQueue.h"
-#import "JSONKit.h"
+#import "EDNetwork.h"
 
 #import "ED_ARC.h"
 
@@ -21,10 +20,8 @@
     NSMutableDictionary *_visitorAttributes;
 }
 
-@property (nonatomic, strong)				ASINetworkQueue	*queue;
 
 @property (nonatomic, strong, readwrite)	NSArray			*badges;
-@property (nonatomic, strong, readwrite)	NSArray			*accountBadges;
 @property (nonatomic, assign, readwrite)	NSInteger		 score;
 
 @end
@@ -33,13 +30,11 @@ static EDVisitor *_currentVisitor = nil;
 
 @implementation EDVisitor
 
-@synthesize queue			= _queue;
 
 @synthesize visitorCode		= _visitorCode;
 
 @synthesize badges			= _badges;
 @synthesize score			= _score;
-@synthesize accountBadges   = _accountBadges;
 
 @synthesize visit			= _visit;
 
@@ -50,9 +45,8 @@ static EDVisitor *_currentVisitor = nil;
 
 #if !__has_feature(objc_arc)
 - (void)dealloc {
-	
-	[_queue release];
-	[_badges release];
+    
+    [_badges release];
 	
 	[super dealloc];
 	
@@ -74,10 +68,6 @@ static EDVisitor *_currentVisitor = nil;
 	self = [super init];
 	
 	if (self) {
-		_queue = [[ASINetworkQueue alloc] init];
-		[_queue setMaxConcurrentOperationCount:1];
-		[_queue setShouldCancelAllRequestsOnFailure:NO];
-		
 		_score = EDVisitorScoreNotLoaded;
 	}
 	
@@ -110,276 +100,66 @@ static EDVisitor *_currentVisitor = nil;
 	return [NSURL URLWithString:URLString];
 }
 
-- (void)loadBadgesWithCompletionHandler:(void (^)(NSArray *badges, NSString *error))completionHandler {
-	
-	NSString *URLString = [NSString stringWithFormat:@"%@/badge/list", self.visit.urlPrefix];
-	ASIFormDataRequest *request = [[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:URLString]];
-	[request setPostValue:self.visit.authToken forKey:@"authToken"];
-	[request setPostValue:self.visit.trackingCode forKey:@"trackingCode"];
-	
-	[request setCompletionBlock:^(void){
-	
-		NSDictionary *dict = [request.responseString objectFromJSONString];
-		
-		NSInteger result = [[[dict objectForKey:@"result"] objectForKey:@"code"] intValue];
-		
-		if (result != 0) {
-			NSString *error = [[dict objectForKey:@"result"] objectForKey:@"message"];
-			self.accountBadges = nil;
-			if (completionHandler) {
-				completionHandler(nil, error);
-			}
-			if (self.visit.logging) {
-				NSLog(@"8digits: Failed to load badges for %@, reason: %@", self.visitorCode, error);
-			}
-		}
-		
-		else {
-			self.accountBadges = [[dict objectForKey:@"data"] objectForKey:@"badgeList"];
-			if (completionHandler) {
-				completionHandler(self.badges, nil);
-			}
-			if (self.visit.logging) {
-				NSLog(@"8digits: Loaded %i badges for %@", self.badges.count, self.visitorCode);
-			}
-		}
-		
-	}];
-	
-	[request setFailedBlock:^(void){
-		NSString *error = [request.error localizedDescription];
-		self.accountBadges = nil;
-		if (completionHandler) {
-			completionHandler(nil, error);
-		}
-		if (self.visit.logging) {
-			NSLog(@"8digits: Failed to load badges for %@, reason: %@", self.visitorCode, error);
-		}
-	}];
-	
-	[self.queue addOperation:request];
-	[self.queue go];
-	
+- (NSMutableDictionary *)defaultPostParams {
+    NSMutableDictionary *params = [NSMutableDictionary dictionaryWithObjectsAndKeys:self.visit.authToken, @"authToken",
+                            self.visitorCode, @"visitorCode",
+                            self.visit.trackingCode, @"trackingCode",
+                            nil];
+    return params;
 }
 
-- (void)loadVisitorBadgesWithCompletionHandler:(void (^)(NSArray *badges, NSString *error))completionHandler {
-	
-	NSString *URLString = [NSString stringWithFormat:@"%@/visitor/badges", self.visit.urlPrefix];
-	ASIFormDataRequest *request = [[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:URLString]];
-	[request setPostValue:self.visit.authToken forKey:@"authToken"];
-	[request setPostValue:self.visitorCode forKey:@"visitorCode"];
-	[request setPostValue:self.visit.trackingCode forKey:@"trackingCode"];
-	
-	[request setCompletionBlock:^(void){
-        
-		NSDictionary *dict = [request.responseString objectFromJSONString];
+- (void)loadBadgesWithCompletionHandler:(void (^)(NSArray *badges, NSString *error))completionHandler {
+    
+    NSString *service = @"visitor/badges";
+    
+    NSMutableDictionary *params = [self defaultPostParams];
+    
+    AFHTTPRequestOperation *operation = [[EDNetwork sharedInstance] baseRequest:service type:@"POST" params:params returning:YES completionBlock:^(id responseObject) {
+        NSDictionary *dict = [NSDictionary dictionaryWithDictionary:responseObject];
 		
 		NSInteger result = [[[dict objectForKey:@"result"] objectForKey:@"code"] intValue];
 		
 		if (result != 0) {
+            
 			NSString *error = [[dict objectForKey:@"result"] objectForKey:@"message"];
-			self.badges = nil;
+			self.badges     = nil;
 			if (completionHandler) {
 				completionHandler(nil, error);
 			}
-			if (self.visit.logging) {
-				NSLog(@"8digits: Failed to load badges for %@, reason: %@", self.visitorCode, error);
-			}
+            
+            [self.visit logMessage:@"Failed to load badges for %@, reason: %@", self.visitorCode, error];
+
 		}
 		
 		else {
+            
 			self.badges = [[dict objectForKey:@"data"] objectForKey:@"badges"];
 			if (completionHandler) {
 				completionHandler(self.badges, nil);
 			}
-			if (self.visit.logging) {
-				NSLog(@"8digits: Loaded %i badges for %@", self.badges.count, self.visitorCode);
-			}
+            
 		}
-		
-	}];
-	
-	[request setFailedBlock:^(void){
-		NSString *error = [request.error localizedDescription];
+        
+        ED_ARC_RELEASE(dict);
+
+    } failBlock:^(NSError *error) {
+        
 		self.badges = nil;
 		if (completionHandler) {
-			completionHandler(nil, error);
+			completionHandler(nil, error.localizedDescription);
 		}
 		if (self.visit.logging) {
 			NSLog(@"8digits: Failed to load badges for %@, reason: %@", self.visitorCode, error);
 		}
-	}];
+    }];
+                            
+    [self.visit addRequest:operation];
 	
-	[self.queue addOperation:request];
-	[self.queue go];
-	
-}
-
-
-
-- (void)loadScoreWithCompletionHandler:(void (^)(NSInteger score, NSString *error))completionHandler {
-	
-	NSString *URLString = [NSString stringWithFormat:@"%@/visitor/score", self.visit.urlPrefix];
-	ASIFormDataRequest *request = [[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:URLString]];
-	[request setPostValue:self.visit.authToken forKey:@"authToken"];
-	[request setPostValue:self.visitorCode forKey:@"visitorCode"];
-	[request setPostValue:self.visit.trackingCode forKey:@"trackingCode"];
-	
-	[request setCompletionBlock:^(void){
-		
-		NSDictionary *dict = [request.responseString objectFromJSONString];
-		
-		NSInteger result = [[[dict objectForKey:@"result"] objectForKey:@"code"] intValue];
-		
-		if (result != 0) {
-			NSString *error = [[dict objectForKey:@"result"] objectForKey:@"message"];
-			self.score = EDVisitorScoreNotLoaded;
-			if (completionHandler) {
-				completionHandler(self.score, error);
-			}
-			if (self.visit.logging) {
-				NSLog(@"8digits: Failed to load score for %@, reason: %@", self.visitorCode, error);
-			}
-		}
-		
-		else {
-			self.score = [[[dict objectForKey:@"data"] objectForKey:@"score"] integerValue];
-			
-			if (completionHandler) {
-				completionHandler(self.score, nil);
-			}
-			
-			if (self.visit.logging) {
-				NSLog(@"8digits: Loaded score (%i) for %@", self.score, self.visitorCode);
-			}
-			
-		}
-		
-	}];
-	
-	[request setFailedBlock:^(void){
-		NSString *error = [request.error localizedDescription];
-		self.score = EDVisitorScoreNotLoaded;
-		if (completionHandler) {
-			completionHandler(self.score, error);
-		}
-		if (self.visit.logging) {
-			NSLog(@"8digits: Failed to load score for %@, reason: %@", self.visitorCode, error);
-		}
-	}];
-	
-	[self.queue addOperation:request];
-	[self.queue go];
+    ED_ARC_RELEASE(params);
 	
 }
 
-- (void)increaseScoreBy:(NSInteger)differential withCompletionHandler:(void (^)(NSInteger score, NSString *error))completionHandler {
-	
-	NSString *URLString = [NSString stringWithFormat:@"%@/score/increase", self.visit.urlPrefix];
-	ASIFormDataRequest *request = [[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:URLString]];
-	[request setPostValue:self.visit.authToken forKey:@"authToken"];
-	[request setPostValue:self.visitorCode forKey:@"visitorCode"];
-	[request setPostValue:self.visit.trackingCode forKey:@"trackingCode"];
-	[request setPostValue:[NSString stringWithFormat:@"%i", differential] forKey:@"value"];
-	
-	[request setCompletionBlock:^(void){
-		
-		NSDictionary *dict = [request.responseString objectFromJSONString];
-		
-		NSInteger result = [[[dict objectForKey:@"result"] objectForKey:@"code"] intValue];
-		
-		if (result != 0) {
-			NSString *error = [[dict objectForKey:@"result"] objectForKey:@"message"];
-			self.score = EDVisitorScoreNotLoaded;
-			if (completionHandler) {
-				completionHandler(self.score, error);
-			}
-			if (self.visit.logging) {
-				NSLog(@"8digits: Failed to increase score for %@, reason: %@", self.visitorCode, error);
-			}
-		}
-		
-		else {
-			self.score = [[[dict objectForKey:@"data"] objectForKey:@"score"] integerValue];
-			if (completionHandler) {
-				completionHandler(self.score, nil);
-			}
-			if (self.visit.logging) {
-				NSLog(@"8digits: Increased score (%i, %i) for %@", differential, self.score, self.visitorCode);
-			}
-		}
-		
-	}];
-	
-	[request setFailedBlock:^(void){
-		NSString *error = [request.error localizedDescription];
-		self.score = EDVisitorScoreNotLoaded;
-		if (completionHandler) {
-			completionHandler(self.score, error);
-		}
-		if (self.visit.logging) {
-			NSLog(@"8digits: Failed to increase score for %@, reason: %@", self.visitorCode, error);
-		}
-	}];
-	
-	[self.queue addOperation:request];
-	[self.queue go];
-	
-}
 
-- (void)decreaseScoreBy:(NSInteger)differential withCompletionHandler:(void (^)(NSInteger score, NSString *error))completionHandler {
-	
-	NSString *URLString = [NSString stringWithFormat:@"%@/score/decrease", self.visit.urlPrefix];
-	ASIFormDataRequest *request = [[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:URLString]];
-	[request setPostValue:self.visit.authToken forKey:@"authToken"];
-	[request setPostValue:self.visitorCode forKey:@"visitorCode"];
-	[request setPostValue:self.visit.trackingCode forKey:@"trackingCode"];
-	[request setPostValue:[NSString stringWithFormat:@"%i", differential] forKey:@"value"];
-	
-	[request setCompletionBlock:^(void){
-	
-		NSDictionary *dict = [request.responseString objectFromJSONString];
-		
-		NSInteger result = [[[dict objectForKey:@"result"] objectForKey:@"code"] intValue];
-		
-		if (result != 0) {
-			NSString *error = [[dict objectForKey:@"result"] objectForKey:@"message"];
-			self.score = EDVisitorScoreNotLoaded;
-			if (completionHandler) {
-				completionHandler(self.score, error);
-			}
-			if (self.visit.logging) {
-				NSLog(@"8digits: Failed to decrease score for %@, reason: %@", self.visitorCode, error);
-			}
-		}
-		
-		else {
-			self.score = [[[dict objectForKey:@"data"] objectForKey:@"score"] integerValue];
-			if (completionHandler) {
-				completionHandler(self.score, nil);
-			}
-			if (self.visit.logging) {
-				NSLog(@"8digits: Decreased score (%i, %i) for %@", differential, self.score, self.visitorCode);
-			}
-		}
-		
-	}];
-	
-	[request setFailedBlock:^(void){
-		NSString *error = [request.error localizedDescription];
-		self.score = EDVisitorScoreNotLoaded;
-		if (completionHandler) {
-			completionHandler(self.score, error);
-		}
-		if (self.visit.logging) {
-			NSLog(@"8digits: Failed to decrease score for %@, reason: %@", self.visitorCode, error);
-		}
-	}];
-	
-	[self.queue addOperation:request];
-	[self.queue go];
-	
-}
 
 - (void)setVisitorAttributesFromDictionary:(NSDictionary *)dictionary withCompletionHandler:(void (^)(NSString *))completionHandler {
     
@@ -406,58 +186,52 @@ static EDVisitor *_currentVisitor = nil;
     
     [keyString deleteCharactersInRange:NSMakeRange(keyString.length - 3, 3)];
     [valueString deleteCharactersInRange:NSMakeRange(valueString.length - 3, 3)];
+//    NSArray *keys = [NSArray arrayWithObject:keyString];
+//    NSArray *values = [NSArray arrayWithObject:valueString];
     
-    NSString *URLString = [NSString stringWithFormat:@"%@/visitor/setAttribute", self.visit.urlPrefix];
-	ASIFormDataRequest *request = [[ASIFormDataRequest alloc] initWithURL:[NSURL URLWithString:URLString]];
-	[request setPostValue:self.visit.authToken forKey:@"authToken"];
-	[request setPostValue:self.visitorCode forKey:@"visitorCode"];
-	[request setPostValue:self.visit.trackingCode forKey:@"trackingCode"];
-	[request setPostValue:keyString forKey:@"keys"];
-    [request setPostValue:valueString forKey:@"values"];
-	
-	[request setCompletionBlock:^(void){
+    NSString *service = @"attr/set";
+    NSMutableDictionary *params = [NSMutableDictionary dictionaryWithObjectsAndKeys:self.visit.authToken, @"authToken",
+                                   self.visitorCode, @"visitorCode",
+                                   self.visit.trackingCode, @"trackingCode",
+                                   keyString, @"name",
+                                   valueString, @"value", nil];
+    
+    AFHTTPRequestOperation *operation = [[EDNetwork sharedInstance] baseRequest:service type:@"POST" params:params returning:YES completionBlock:^(id responseObject) {
+        NSDictionary *dict = [NSDictionary dictionaryWithDictionary:responseObject];
         
-		NSDictionary *dict = [request.responseString objectFromJSONString];
-		
-		NSInteger result = [[[dict objectForKey:@"result"] objectForKey:@"code"] intValue];
+        NSInteger result = [[[dict objectForKey:@"result"] objectForKey:@"code"] intValue];
 		
 		if (result != 0) {
 			NSString *error = [[dict objectForKey:@"result"] objectForKey:@"message"];
 			if (completionHandler) {
 				completionHandler(error);
 			}
-			if (self.visit.logging) {
-				NSLog(@"8digits: Failed to set values for keys: %@, reason: %@", keyString, error);
-			}
+            [self.visit logMessage:@"Failed to set values for keys: %@, reason: %@", keyString, error];
 		}
 		
 		else {
 			[_visitorAttributes addEntriesFromDictionary:dictionary];
             [_visitorAttributes writeToFile:path atomically:YES];
-
+            
 			if (completionHandler) {
 				completionHandler(nil);
 			}
-			if (self.visit.logging) {
-				NSLog(@"8digits: Successfully set values for keys: %@ for visitor: %@", keyString, self.visitorCode);
-			}
+            [self.visit logMessage:@"Successfully set values for keys: %@ for visitor: %@", keyString, self.visitorCode];
 		}
-		
-	}];
-	
-	[request setFailedBlock:^(void){
-		NSString *error = [request.error localizedDescription];
-		self.score = EDVisitorScoreNotLoaded;
+        
+        ED_ARC_RELEASE(dict);
+
+    } failBlock:^(NSError *error) {
+        self.score = EDVisitorScoreNotLoaded;
 		if (completionHandler) {
-			completionHandler(error);
+			completionHandler(error.localizedDescription);
 		}
-		if (self.visit.logging) {
-            NSLog(@"8digits: Failed to set values for keys: %@, reason: %@", keyString, error);
-		}
-	}];
-	
-	[self.queue addOperation:request];
-	[self.queue go];
+        [self.visit logMessage:@"Failed to set values for keys: %@, reason: %@", keyString, error];
+    }];
+    
+    [self.visit addRequest:operation];
+    
+    ED_ARC_RELEASE(params);
     
 }
 
