@@ -62,8 +62,7 @@
     NSDictionary *params = [NSDictionary dictionaryWithObjectsAndKeys:currentVisit.authToken, @"authToken",
                             currentVisit.visitorCode, @"visitorCode",
                             currentVisit.trackingCode, @"trackingCode",
-                            currentVisit.sessionCode, @"sessionCode",
-                            @"23423asd4aad", @"hack",nil];
+                            currentVisit.sessionCode, @"sessionCode",nil];
     
     
     [[EDNetwork sharedInstance] getRequest:service params:params completionBlock:^(id responseObject) {
